@@ -18,6 +18,11 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
   const headRef = useRef<THREE.Object3D | null>(null);
   const chestRef = useRef<THREE.Object3D | null>(null);
   const hipsRef = useRef<THREE.Object3D | null>(null);
+  const faceRefs = useRef({
+    leftEye: null as THREE.Object3D | null,
+    rightEye: null as THREE.Object3D | null,
+    mouth: null as THREE.Object3D | null,
+  });
   const armRefs = useRef<{
     lShoulder: THREE.Object3D | null;
     rShoulder: THREE.Object3D | null;
@@ -129,6 +134,15 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     armRefs.current.rHandTwist = byName(/zHandTwist_R/i);
     chestRef.current = byName(/Chest_04/i) ?? byName(/chest/i);
     hipsRef.current = byName(/Hips_02/i) ?? byName(/hips|pelvis/i);
+    faceRefs.current.leftEye = byName(/^Eye_L_08$/i);
+    faceRefs.current.rightEye = byName(/^Eye_R_07$/i);
+    faceRefs.current.mouth = byName(/_011$/i);
+    for (const eye of [faceRefs.current.leftEye, faceRefs.current.rightEye]) {
+      if (eye && !restScales.has(eye.name)) restScales.set(eye.name, eye.scale.clone());
+    }
+    if (faceRefs.current.mouth && !restQuats.has(faceRefs.current.mouth.name)) {
+      restQuats.set(faceRefs.current.mouth.name, faceRefs.current.mouth.quaternion.clone());
+    }
     if (h) {
       if (!restQuats.has(h.name)) restQuats.set(h.name, h.quaternion.clone());
       headBase.current.set(h.name, restQuats.get(h.name)!.clone());
@@ -310,6 +324,15 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
         const tgt = poseTargets.current.get(b.name);
         if (tgt) b.quaternion.copy(tgt);
       }
+      for (const eye of [faceRefs.current.leftEye, faceRefs.current.rightEye]) {
+        if (!eye) continue;
+        const baseScale = restScales.get(eye.name);
+        if (baseScale) eye.scale.copy(baseScale);
+      }
+      const mouthBase = faceRefs.current.mouth && restQuats.get(faceRefs.current.mouth.name);
+      if (faceRefs.current.mouth && mouthBase) {
+        faceRefs.current.mouth.quaternion.copy(mouthBase).multiply(_qSmile);
+      }
       group.current.position.y = MODEL_Y;
       group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
       group.current.rotation.set(0, 0, 0);
@@ -396,6 +419,21 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       group.current.rotation.x = pitchRef.current * 0.5;
       group.current.rotation.z = idleRotZ;
     }
+
+    const blinkPhase = t % 6.5;
+    const blink = blinkPhase < 0.22 ? Math.sin((blinkPhase / 0.22) * Math.PI) : 0;
+    _qEyeYaw.setFromAxisAngle(_Y_AXIS, yawRef.current * 0.45);
+    _qEyePitch.setFromAxisAngle(_X_AXIS, pitchRef.current * 0.35);
+    for (const eye of [faceRefs.current.leftEye, faceRefs.current.rightEye]) {
+      if (!eye) continue;
+      const base = restQuats.get(eye.name);
+      const baseScale = restScales.get(eye.name);
+      if (base) eye.quaternion.copy(base).multiply(_qEyeYaw).multiply(_qEyePitch);
+      if (baseScale) eye.scale.set(baseScale.x, baseScale.y * (1 - blink * 0.85), baseScale.z);
+    }
+    const mouth = faceRefs.current.mouth;
+    const mouthBase = mouth && restQuats.get(mouth.name);
+    if (mouth && mouthBase) mouth.quaternion.copy(mouthBase).multiply(_qSmile);
   });
 
   // skala & posisi: patung di tengah belakang, kaki di bawah horizon
@@ -409,6 +447,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
 // rest-pose snapshot module-level: useGLTF cache + StrictMode/HMR bikin effect 2x,
 // tanpa ini run kedua mengira pose-pertama = rest → hasil kurang turun / drift.
 const restQuats = new Map<string, THREE.Quaternion>();
+const restScales = new Map<string, THREE.Vector3>();
 
 // tmp objects module-scope (hindari alokasi per-frame)
 const _qTmp = new THREE.Quaternion();
@@ -416,8 +455,11 @@ const _qTmp2 = new THREE.Quaternion();
 const _qYaw = new THREE.Quaternion();
 const _qPitch = new THREE.Quaternion();
 const _qRoll = new THREE.Quaternion();
+const _qEyeYaw = new THREE.Quaternion();
+const _qEyePitch = new THREE.Quaternion();
 const _X_AXIS = new THREE.Vector3(1, 0, 0);
 const _Y_AXIS = new THREE.Vector3(0, 1, 0);
 const _Z_AXIS = new THREE.Vector3(0, 0, 1);
+const _qSmile = new THREE.Quaternion().setFromAxisAngle(_Z_AXIS, -0.12);
 
 useGLTF.preload("/char.glb");
