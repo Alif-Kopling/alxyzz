@@ -1,0 +1,120 @@
+import { lazy, Suspense, useEffect, useRef } from "react";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useReducedMotion } from "motion/react";
+import {
+  Atom,
+  BracketsCurly,
+  PaintBrush,
+  Lightning,
+  Sparkle,
+  PlugsConnected,
+} from "@phosphor-icons/react";
+import { moreRepos } from "../lib/github";
+
+const CharBackdrop = lazy(() =>
+  import("./CharBackdrop").then((m) => ({ default: m.CharBackdrop })),
+);
+
+gsap.registerPlugin(ScrollTrigger);
+
+const items = [
+  { icon: Atom, title: "React", desc: "Komponen rapi, state jelas, struktur folder yang mudah dirawat." },
+  { icon: BracketsCurly, title: "TypeScript", desc: "Tipe aman untuk props, API, dan form sejak awal." },
+  { icon: PaintBrush, title: "Tailwind", desc: "Styling cepat dengan sistem spacing yang konsisten." },
+  { icon: Lightning, title: "Vite", desc: "Dev cepat dan build ringan untuk deploy ke Vercel." },
+  { icon: Sparkle, title: "Motion", desc: "Animasi entry dan reveal yang halus dan aman." },
+  { icon: PlugsConnected, title: "API", desc: "Fetch data GitHub dan REST API dengan loading dan error state." },
+];
+
+export function CapabilitiesPan() {
+  const wrap = useRef<HTMLElement>(null);
+  const track = useRef<HTMLDivElement>(null);
+  const reduce = useReducedMotion();
+  const progressRef = useRef(0);
+
+  useEffect(() => {
+    if (reduce || !wrap.current || !track.current) return;
+    // Sama kaya desktop: scroll vertikal nge-pin terus geser ke kiri sampai habis — jalan di mobile juga
+    const ctx = gsap.context(() => {
+      const distance = () => Math.max(track.current!.scrollWidth - window.innerWidth, 0);
+      if (distance() <= 0) return;
+      gsap.to(track.current, {
+        x: () => -distance(),
+        ease: "none",
+        scrollTrigger: {
+          trigger: wrap.current,
+          start: "top top",
+          end: () => `+=${distance()}`,
+          pin: true,
+          scrub: 1,
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            progressRef.current = self.progress;
+          },
+        },
+      });
+    }, wrap);
+    return () => ctx.revert();
+  }, [reduce]);
+
+  return (
+    <section
+      id="skills"
+      ref={wrap}
+      className="relative scroll-mt-20 overflow-hidden border-y border-zinc-200 bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-900/40"
+    >
+      <Suspense fallback={null}>
+        <CharBackdrop progressRef={progressRef} />
+      </Suspense>
+      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-12 md:px-6 md:pt-16">
+        <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
+          Skills
+        </p>
+        <h2 className="font-display mt-3 max-w-[22ch] text-3xl font-semibold tracking-tighter text-zinc-950 md:text-4xl dark:text-zinc-50">
+          Stack frontend untuk web modern
+        </h2>
+      </div>
+
+      <div
+        ref={track}
+        className="relative z-10 flex h-[100dvh] items-center gap-4 px-4 md:gap-5 md:px-6"
+      >
+        {items.map((item) => (
+          <article
+            key={item.title}
+            className="card-soft w-[82vw] shrink-0 border border-zinc-200 bg-white p-6 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-zinc-800 dark:bg-zinc-950"
+          >
+            <item.icon size={26} weight="duotone" className="text-[#2440ff] dark:text-[#8ea2ff]" />
+            <h3 className="font-display mt-4 text-lg font-semibold tracking-tight text-zinc-950 md:mt-5 md:text-xl dark:text-zinc-50">
+              {item.title}
+            </h3>
+            <p className="mt-2 text-sm leading-relaxed text-zinc-600 md:text-base dark:text-zinc-400">
+              {item.desc}
+            </p>
+          </article>
+        ))}
+
+        <article className="card-soft w-[82vw] shrink-0 border border-zinc-200 bg-white p-6 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-zinc-800 dark:bg-zinc-950">
+          <h3 className="font-display text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
+            Repo lain
+          </h3>
+          <ul className="mt-4 grid gap-3">
+            {moreRepos.map((r) => (
+              <li key={r.name}>
+                <a
+                  href={r.repoUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold text-zinc-800 hover:border-zinc-900 dark:border-zinc-800 dark:text-zinc-200 dark:hover:border-zinc-300"
+                >
+                  {r.name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </article>
+      </div>
+    </section>
+  );
+}
