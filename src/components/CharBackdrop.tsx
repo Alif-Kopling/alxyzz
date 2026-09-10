@@ -1,7 +1,9 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { useReducedMotion } from "motion/react";
+import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { CharModel } from "./CharModel";
 import { livePose, usePoseVersion } from "./charPose";
 import { FacePanel, PosePanel } from "./PosePanel";
@@ -113,12 +115,17 @@ export function CharBackdrop({ progressRef }: Props) {
           style={{ background: "transparent" }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
+            gl.toneMappingExposure = 1.08;
           }}
         >
+          {/* Env prosedural (tanpa download HDR): highlight rambut/gold/mata
+              jadi hidup. Sekali jalan pas mount (di balik portal), nol cost
+              per-frame. Intensity 0.5 biar mood gelap kejaga. */}
+          <Env />
           {/* key warm + rim biru ala Furina + fill lembut biar kulit tidak abu pucat */}
-          <hemisphereLight intensity={0.85} args={[0xfff6e5, 0x1a1025, 0.85]} />
+          <hemisphereLight intensity={0.6} args={[0xfff6e5, 0x1a1025, 0.85]} />
           <directionalLight position={[2.5, 4, 2]} intensity={1.25} color={0xfff1dd} />
-          <directionalLight position={[-2.5, 2.5, -2]} intensity={1.1} color={0x8ea2ff} />
+          <directionalLight position={[-2.5, 2.5, -2]} intensity={1.3} color={0x8ea2ff} />
           <directionalLight position={[-1.5, 1, 2.5]} intensity={0.35} color={0xffd9b0} />
 
           <Suspense fallback={null}>
@@ -141,6 +148,25 @@ export function CharBackdrop({ progressRef }: Props) {
       )}
     </div>
   );
+}
+
+/** Image-based lighting prosedural: kaya tanpa nambah lampu real-time. */
+function Env() {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    const pmrem = new THREE.PMREMGenerator(gl);
+    const rt = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    scene.environment = rt.texture;
+    scene.environmentIntensity = 0.5;
+    return () => {
+      scene.environment = null;
+      scene.environmentIntensity = 1;
+      rt.dispose();
+      pmrem.dispose();
+    };
+  }, [gl, scene]);
+  return null;
 }
 
 function ChairModel() {

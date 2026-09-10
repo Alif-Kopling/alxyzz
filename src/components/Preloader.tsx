@@ -62,15 +62,6 @@ export function Preloader({ onEnter }: Props) {
               />
             </div>
             <span className="sr-only">Memuat… {progress}%</span>
-            {/* Katup pengaman: audio 30MB di jaringan lemot bisa lama.
-                Fetch yang jalan tetap lanjut ke cache walau user skip duluan. */}
-            <button
-              type="button"
-              onClick={onEnter}
-              className="mt-6 text-xs tracking-wide text-white/30 transition-colors hover:text-white/70 focus-visible:text-white/70 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/50"
-            >
-              Masuk sekarang →
-            </button>
           </motion.div>
         ) : (
           <motion.div
