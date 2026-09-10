@@ -8,7 +8,7 @@ import {
   markDimensionEntry,
 } from "../lib/dimension";
 import { playPortalSfx } from "../lib/sfx";
-import { lockScroll, unlockScroll } from "./SmoothScroll";
+import { lockScroll, setScrollHeavy, unlockScroll } from "./SmoothScroll";
 import { useAudio } from "../context/AudioContext";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -47,6 +47,9 @@ export function PortalTransition() {
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             const p = self.progress;
+            // di dalam terowongan (0.2 - 0.85): scroll dibikin berat 3x
+            // kayak ketahan dimensi lain; di luar itu balik normal
+            setScrollHeavy(p > 0.2 && p < 0.85);
             // balik ke atas = reset entry biar suara bisa bunyi lagi pas masuk ulang
             if (p < 0.15) enteredRef.current = false;
             // masuk terowongan: tandai eager + mulai load 3D + bunyikan portal
@@ -80,6 +83,10 @@ export function PortalTransition() {
       tl.to(".portal-core", { scale: 2.4, duration: 0.3 }, 0.35);
       tl.fromTo(".portal-streaks", { opacity: 0, rotation: 0 }, { opacity: 0.8, rotation: 140, duration: 0.45 }, 0.3);
       tl.to(".portal-hint", { opacity: 0, y: -24, duration: 0.12 }, 0.53);
+      // FULL CERAH di tengah portal: wash putih menuhin layar (0.38 - 0.63),
+      // tahan bentar kayak beneran di dalam dimensi lain, baru redup pas zoom-out
+      tl.fromTo(".portal-wash", { opacity: 0 }, { opacity: 1, duration: 0.25 }, 0.38);
+      tl.to(".portal-wash", { opacity: 0, duration: 0.15 }, 0.72);
 
       // FASE 3 zoom-out (0.65 - 1): flash, cincin collapse keluar + fade, streaks hilang
       tl.fromTo(".portal-flash", { opacity: 0 }, { opacity: 0.9, duration: 0.04 }, 0.66);
@@ -90,8 +97,9 @@ export function PortalTransition() {
     }, root);
     return () => {
       ctx.revert();
-      // pengaman: jangan pernah ninggalin scroll kekunci
+      // pengaman: jangan pernah ninggalin scroll kekunci / keberatan
       lockRef.current = false;
+      setScrollHeavy(false);
       unlockScroll();
     };
   }, [reduce]);
@@ -142,6 +150,14 @@ export function PortalTransition() {
             filter: "blur(6px)",
           }}
         />
+        {/* wash terang full-layar: puncaknya kayak di dalam dimensi lain */}
+        <div
+          className="portal-wash pointer-events-none absolute inset-0 opacity-0"
+          style={{
+            background:
+              "radial-gradient(circle at 50% 50%, rgb(255 255 255) 0%, rgb(214 224 255) 45%, rgb(142 162 255) 100%)",
+          }}
+        />
         {/* flash zoom-out */}
         <div
           className="portal-flash pointer-events-none absolute inset-0 opacity-0"
@@ -154,7 +170,7 @@ export function PortalTransition() {
         <p className="portal-hint relative z-10 rounded-full border border-white/15 bg-white/5 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-200 opacity-0 backdrop-blur">
           memasuki dimensi…
         </p>
-        <p className="portal-wait absolute bottom-10 z-10 animate-pulse rounded-full border border-white/15 bg-white/5 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-zinc-200 opacity-0">
+        <p className="portal-wait absolute bottom-10 z-10 animate-pulse rounded-full border border-white/25 bg-black/60 px-4 py-1.5 font-mono text-[11px] uppercase tracking-[0.2em] text-white opacity-0">
           menyiapkan dimensi…
         </p>
       </div>

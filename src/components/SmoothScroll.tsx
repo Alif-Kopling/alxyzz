@@ -12,6 +12,8 @@ let lenis: Lenis | null = null;
 
 /** Berat sedang: makin kecil lerp makin berat. 0.09 = halus tapi berisi. */
 const LERP = 0.09;
+/** Berat di dalam portal: 3x lebih berat, kayak ketahan dimensi lain. */
+const HEAVY_LERP = 0.03;
 /** Samain sama scroll-mt-20 (80px) biar mendarat di bawah navbar. */
 const NAV_OFFSET = 80;
 
@@ -33,6 +35,21 @@ export function lockScroll() {
 /** Lepas kunci scroll. */
 export function unlockScroll() {
   lenis?.start();
+}
+
+/**
+ * Bikin scroll berat sementara (dipakai di dalam portal).
+ * Lenis baca options.lerp live tiap wheel event, jadi aman diubah on-the-fly.
+ * Touch HP native (syncTouch mati) jadi tidak terpengaruh.
+ */
+export function setScrollHeavy(heavy: boolean) {
+  if (!lenis) return;
+  try {
+    (lenis as unknown as { options: { lerp: number } }).options.lerp =
+      heavy ? HEAVY_LERP : LERP;
+  } catch {
+    /* abaikan */
+  }
 }
 
 /**
