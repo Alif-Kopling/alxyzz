@@ -133,6 +133,7 @@ export function CharBackdrop({ progressRef }: Props) {
         >
           {/* Env prosedural (tanpa download HDR): highlight rambut/gold/mata
               jadi hidup. Sekali jalan pas mount (di balik portal), nol cost
+<<<<<<< HEAD
               per-frame. Intensity direndahin biar tone warm dari lampu yang mimpin. */}
           <Env intensity={0.35} />
           {/* key warm + rim biru ala Furina + fill hangat biar kulit tidak abu pucat */}
@@ -140,6 +141,15 @@ export function CharBackdrop({ progressRef }: Props) {
           <directionalLight position={[2.5, 4, 2]} intensity={1.35} color={0xffd2a0} />
           <directionalLight position={[-2.5, 2.5, -2]} intensity={1.2} color={0x8ea2ff} />
           <directionalLight position={[-1.5, 1, 2.5]} intensity={0.55} color={0xffab66} />
+=======
+              per-frame. Intensity 0.5 biar mood gelap kejaga. */}
+          <Env />
+          {/* key warm + rim biru ala Furina + fill lembut biar kulit tidak abu pucat */}
+          <hemisphereLight intensity={0.6} args={[0xfff6e5, 0x1a1025, 0.85]} />
+          <directionalLight position={[2.5, 4, 2]} intensity={1.25} color={0xfff1dd} />
+          <directionalLight position={[-2.5, 2.5, -2]} intensity={1.3} color={0x8ea2ff} />
+          <directionalLight position={[-1.5, 1, 2.5]} intensity={0.35} color={0xffd9b0} />
+>>>>>>> a993dab1c34561e01f329e5b565037ffbf731650
 
           <Suspense fallback={null}>
             {/* Boost +30%: char + kursi di-scale BARENG dari titik dudukan
@@ -164,21 +174,33 @@ export function CharBackdrop({ progressRef }: Props) {
 }
 
 /** Image-based lighting prosedural: kaya tanpa nambah lampu real-time. */
+<<<<<<< HEAD
 function Env({ intensity = 0.5 }: { intensity?: number }) {
+=======
+function Env() {
+>>>>>>> a993dab1c34561e01f329e5b565037ffbf731650
   const gl = useThree((s) => s.gl);
   const scene = useThree((s) => s.scene);
   useEffect(() => {
     const pmrem = new THREE.PMREMGenerator(gl);
     const rt = pmrem.fromScene(new RoomEnvironment(), 0.04);
     scene.environment = rt.texture;
+<<<<<<< HEAD
     scene.environmentIntensity = intensity;
+=======
+    scene.environmentIntensity = 0.5;
+>>>>>>> a993dab1c34561e01f329e5b565037ffbf731650
     return () => {
       scene.environment = null;
       scene.environmentIntensity = 1;
       rt.dispose();
       pmrem.dispose();
     };
+<<<<<<< HEAD
   }, [gl, scene, intensity]);
+=======
+  }, [gl, scene]);
+>>>>>>> a993dab1c34561e01f329e5b565037ffbf731650
   return null;
 }
 
