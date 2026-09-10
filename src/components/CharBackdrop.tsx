@@ -99,9 +99,15 @@ export function CharBackdrop({ progressRef }: Props) {
   // reduced motion → statis: CharModel langsung pasang pose final tanpa sway (lihat prop reduced)
   // Canvas pointer-events-none biar tidak nyolong scroll/touch kartu
 
-  // klik kepala Furina → ngambek. Guard jarak pointerdown-click biar
-  // scroll/swipe tidak kepicu. Kepala diproyeksi ke layar tiap klik.
+  // klik/tap kepala Furina → ngambek. Pakai pointerup (bukan click) biar
+  // reliable di touch HP — iOS sering tidak mengirim click ke elemen
+  // non-interaktif. Guard jarak pointerdown-up biar scroll/swipe tidak kepicu.
   useEffect(() => {
+    const fatFinger =
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(pointer: coarse)").matches;
+    const RADIUS = fatFinger ? 125 : 95;
     const el = containerRef.current?.parentElement;
     if (!el) return;
     let dx = 0;
@@ -110,8 +116,8 @@ export function CharBackdrop({ progressRef }: Props) {
       dx = e.clientX;
       dy = e.clientY;
     };
-    const onClick = (e: MouseEvent) => {
-      if (Math.hypot(e.clientX - dx, e.clientY - dy) > 8) return;
+    const onUp = (e: PointerEvent) => {
+      if (Math.hypot(e.clientX - dx, e.clientY - dy) > 10) return;
       const tr = headTrack;
       if (!tr.valid || !tr.cam) return;
       const box = containerRef.current?.getBoundingClientRect();
@@ -120,14 +126,14 @@ export function CharBackdrop({ progressRef }: Props) {
       if (_pv.z > 1) return;
       const sx = box.left + (_pv.x * 0.5 + 0.5) * box.width;
       const sy = box.top + (-_pv.y * 0.5 + 0.5) * box.height;
-      if (Math.hypot(e.clientX - sx, e.clientY - sy) > 95) return;
+      if (Math.hypot(e.clientX - sx, e.clientY - sy) > RADIUS) return;
       triggerAnger();
     };
     el.addEventListener("pointerdown", onDown);
-    el.addEventListener("click", onClick);
+    el.addEventListener("pointerup", onUp);
     return () => {
       el.removeEventListener("pointerdown", onDown);
-      el.removeEventListener("click", onClick);
+      el.removeEventListener("pointerup", onUp);
     };
   }, []);
 

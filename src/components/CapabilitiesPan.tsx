@@ -146,7 +146,7 @@ export function CapabilitiesPan() {
             onMouseEnter={(e) => pointAttention(e.currentTarget)}
             onMouseMove={(e) => pointAttention(e.currentTarget)}
             onMouseLeave={clearAttention}
-            className="skill-card card-soft group w-[82vw] shrink-0 border border-white/40 bg-white/55 p-6 backdrop-blur-xl transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/55"
+            className="skill-card card-soft group w-[82vw] shrink-0 border border-white/40 bg-white/85 p-6 transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/88"
           >
             <item.icon
               size={26}
@@ -166,7 +166,7 @@ export function CapabilitiesPan() {
           onMouseEnter={(e) => pointAttention(e.currentTarget)}
           onMouseMove={(e) => pointAttention(e.currentTarget)}
           onMouseLeave={clearAttention}
-          className="skill-card card-soft w-[82vw] shrink-0 border border-white/40 bg-white/55 p-6 backdrop-blur-xl transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/55"
+          className="skill-card card-soft w-[82vw] shrink-0 border border-white/40 bg-white/85 p-6 transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/88"
         >
           <h3 className="font-display text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             Repo lain
@@ -178,7 +178,7 @@ export function CapabilitiesPan() {
                   href={r.repoUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="block rounded-lg border border-white/40 bg-white/40 px-4 py-3 text-sm font-semibold text-zinc-800 backdrop-blur-xl hover:border-zinc-900 dark:border-white/15 dark:bg-white/5 dark:text-zinc-200 dark:hover:border-zinc-300"
+                  className="block rounded-lg border border-white/40 bg-white/70 px-4 py-3 text-sm font-semibold text-zinc-800 hover:border-zinc-900 dark:border-white/15 dark:bg-white/10 dark:text-zinc-200 dark:hover:border-zinc-300"
                 >
                   {r.name}
                 </a>
