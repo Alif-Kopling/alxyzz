@@ -1,5 +1,6 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
 import { useReducedMotion } from "motion/react";
 import { CharModel } from "./CharModel";
 
@@ -89,6 +90,7 @@ export function CharBackdrop({ progressRef }: Props) {
           <directionalLight position={[2.5, 4, 2]} intensity={1.35} />
 
           <Suspense fallback={null}>
+            <ChairModel />
             <CharModel progressRef={progressRef} mouseRef={mouseRef} reduced={reduce ?? false} />
           </Suspense>
         </Canvas>
@@ -96,3 +98,10 @@ export function CharBackdrop({ progressRef }: Props) {
     </div>
   );
 }
+
+function ChairModel() {
+  const { scene } = useGLTF("/chair.glb");
+  return <primitive object={scene} position={[0, -1.45, -0.65]} scale={1.25} />;
+}
+
+useGLTF.preload("/chair.glb");

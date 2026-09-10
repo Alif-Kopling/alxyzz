@@ -18,6 +18,14 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
   const headRef = useRef<THREE.Object3D | null>(null);
   const chestRef = useRef<THREE.Object3D | null>(null);
   const hipsRef = useRef<THREE.Object3D | null>(null);
+  const legRefs = useRef({
+    leftThigh: null as THREE.Object3D | null,
+    rightThigh: null as THREE.Object3D | null,
+    leftKnee: null as THREE.Object3D | null,
+    rightKnee: null as THREE.Object3D | null,
+    leftAnkle: null as THREE.Object3D | null,
+    rightAnkle: null as THREE.Object3D | null,
+  });
   const faceRefs = useRef({
     leftEye: null as THREE.Object3D | null,
     rightEye: null as THREE.Object3D | null,
@@ -134,6 +142,12 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     armRefs.current.rHandTwist = byName(/zHandTwist_R/i);
     chestRef.current = byName(/Chest_04/i) ?? byName(/chest/i);
     hipsRef.current = byName(/Hips_02/i) ?? byName(/hips|pelvis/i);
+    legRefs.current.leftThigh = byName(/leg_0120$/i);
+    legRefs.current.rightThigh = byName(/leg_0124$/i);
+    legRefs.current.leftKnee = byName(/knee_0121$/i);
+    legRefs.current.rightKnee = byName(/knee_0125$/i);
+    legRefs.current.leftAnkle = byName(/ankle_0122$/i);
+    legRefs.current.rightAnkle = byName(/ankle_0126$/i);
     faceRefs.current.leftEye = byName(/^Eye_L_08$/i);
     faceRefs.current.rightEye = byName(/^Eye_R_07$/i);
     faceRefs.current.mouth = byName(/_011$/i);
@@ -180,6 +194,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       regs.lElbow, regs.rElbow, regs.lWrist, regs.rWrist,
       regs.lArmTwist, regs.rArmTwist, regs.lHandTwist, regs.rHandTwist,
       chestRef.current, hipsRef.current,
+      legRefs.current.leftThigh, legRefs.current.rightThigh,
+      legRefs.current.leftKnee, legRefs.current.rightKnee,
+      legRefs.current.leftAnkle, legRefs.current.rightAnkle,
     ];
     for (const b of poseBones) {
       if (!b) continue;
@@ -278,6 +295,33 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       followDelta(regs.rArm?.name, regs.rArmTwist, 0.5);
       followDelta(regs.lElbow?.name, regs.lHandTwist, 0.5);
       followDelta(regs.rElbow?.name, regs.rHandTwist, 0.5);
+
+      const setSittingPose = (
+        thigh: THREE.Object3D | null,
+        knee: THREE.Object3D | null,
+        ankle: THREE.Object3D | null,
+      ) => {
+        if (!thigh || !knee || !ankle) return;
+        const thighBase = restQuats.get(thigh.name);
+        const kneeBase = restQuats.get(knee.name);
+        const ankleBase = restQuats.get(ankle.name);
+        if (!thighBase || !kneeBase || !ankleBase) return;
+        const thighPose = thighBase.clone()
+          .multiply(_qSitThigh)
+          .multiply(thigh === legRefs.current.leftThigh ? _qSitLeftCross : _qSitRightCross);
+        const kneePose = kneeBase.clone()
+          .multiply(_qSitKnee)
+          .multiply(knee === legRefs.current.leftKnee ? _qTopKnee : _qBottomKnee);
+        const anklePose = ankleBase.clone().multiply(_qSitAnkle);
+        poseTargets.current.set(thigh.name, thighPose);
+        poseTargets.current.set(knee.name, kneePose);
+        poseTargets.current.set(ankle.name, anklePose);
+        thigh.quaternion.copy(thighPose);
+        knee.quaternion.copy(kneePose);
+        ankle.quaternion.copy(anklePose);
+      };
+      setSittingPose(legRefs.current.leftThigh, legRefs.current.leftKnee, legRefs.current.leftAnkle);
+      setSittingPose(legRefs.current.rightThigh, legRefs.current.rightKnee, legRefs.current.rightAnkle);
       // eslint-disable-next-line no-console
       console.info("[CharModel] pose solved (world-space): shoulders down, elbows bent, wrists + twist");
     } catch (err) {
@@ -318,6 +362,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
         armRefs.current.lWrist, armRefs.current.rWrist,
         armRefs.current.lArmTwist, armRefs.current.rArmTwist,
         armRefs.current.lHandTwist, armRefs.current.rHandTwist,
+        legRefs.current.leftThigh, legRefs.current.rightThigh,
+        legRefs.current.leftKnee, legRefs.current.rightKnee,
+        legRefs.current.leftAnkle, legRefs.current.rightAnkle,
       ];
       for (const b of posedStatic) {
         if (!b) continue;
@@ -358,6 +405,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       armRefs.current.lWrist, armRefs.current.rWrist,
       armRefs.current.lArmTwist, armRefs.current.rArmTwist,
       armRefs.current.lHandTwist, armRefs.current.rHandTwist,
+      legRefs.current.leftThigh, legRefs.current.rightThigh,
+      legRefs.current.leftKnee, legRefs.current.rightKnee,
+      legRefs.current.leftAnkle, legRefs.current.rightAnkle,
     ];
     for (const b of posed) {
       if (!b) continue;
@@ -461,5 +511,12 @@ const _X_AXIS = new THREE.Vector3(1, 0, 0);
 const _Y_AXIS = new THREE.Vector3(0, 1, 0);
 const _Z_AXIS = new THREE.Vector3(0, 0, 1);
 const _qSmile = new THREE.Quaternion().setFromAxisAngle(_Z_AXIS, -0.12);
+const _qSitThigh = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.78);
+const _qSitKnee = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, 1.35);
+const _qSitAnkle = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.25);
+const _qSitLeftCross = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.78);
+const _qSitRightCross = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, -0.32);
+const _qTopKnee = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.18);
+const _qBottomKnee = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, -0.06);
 
 useGLTF.preload("/char.glb");
