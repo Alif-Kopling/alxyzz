@@ -1,7 +1,9 @@
 import { Suspense, useEffect, useRef, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { useReducedMotion } from "motion/react";
+import * as THREE from "three";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
 import { CharModel } from "./CharModel";
 import { livePose, usePoseVersion } from "./charPose";
 import { FacePanel, PosePanel } from "./PosePanel";
@@ -102,6 +104,19 @@ export function CharBackdrop({ progressRef }: Props) {
       aria-hidden="true"
       className="pointer-events-none absolute inset-0 z-0 overflow-hidden"
     >
+      {/* BG custom di belakang canvas 3D (canvas transparan) */}
+      <img
+        src="/bg-furina.png"
+        alt=""
+        aria-hidden="true"
+        loading="eager"
+        decoding="async"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 bg-[#09090b]/45 [background:radial-gradient(ellipse_90%_80%_at_50%_40%,transparent_40%,rgb(9_9_11/0.55)_100%)]"
+      />
       {visible && (
         <Canvas
           // Ringan: DPR max 1, tanpa antialias (backdrop di balik kartu, beda visual minim),
@@ -113,13 +128,18 @@ export function CharBackdrop({ progressRef }: Props) {
           style={{ background: "transparent" }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
+            gl.toneMappingExposure = 1.08;
           }}
         >
-          {/* key warm + rim biru ala Furina + fill lembut biar kulit tidak abu pucat */}
-          <hemisphereLight intensity={0.85} args={[0xfff6e5, 0x1a1025, 0.85]} />
-          <directionalLight position={[2.5, 4, 2]} intensity={1.25} color={0xfff1dd} />
-          <directionalLight position={[-2.5, 2.5, -2]} intensity={1.1} color={0x8ea2ff} />
-          <directionalLight position={[-1.5, 1, 2.5]} intensity={0.35} color={0xffd9b0} />
+          {/* Env prosedural (tanpa download HDR): highlight rambut/gold/mata
+              jadi hidup. Sekali jalan pas mount (di balik portal), nol cost
+              per-frame. Intensity direndahin biar tone warm dari lampu yang mimpin. */}
+          <Env intensity={0.35} />
+          {/* key warm + rim biru ala Furina + fill hangat biar kulit tidak abu pucat */}
+          <hemisphereLight intensity={0.6} args={[0xffe3c0, 0x3a2418, 0.6]} />
+          <directionalLight position={[2.5, 4, 2]} intensity={1.35} color={0xffd2a0} />
+          <directionalLight position={[-2.5, 2.5, -2]} intensity={1.2} color={0x8ea2ff} />
+          <directionalLight position={[-1.5, 1, 2.5]} intensity={0.55} color={0xffab66} />
 
           <Suspense fallback={null}>
             {/* Boost +30%: char + kursi di-scale BARENG dari titik dudukan
@@ -141,6 +161,25 @@ export function CharBackdrop({ progressRef }: Props) {
       )}
     </div>
   );
+}
+
+/** Image-based lighting prosedural: kaya tanpa nambah lampu real-time. */
+function Env({ intensity = 0.5 }: { intensity?: number }) {
+  const gl = useThree((s) => s.gl);
+  const scene = useThree((s) => s.scene);
+  useEffect(() => {
+    const pmrem = new THREE.PMREMGenerator(gl);
+    const rt = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    scene.environment = rt.texture;
+    scene.environmentIntensity = intensity;
+    return () => {
+      scene.environment = null;
+      scene.environmentIntensity = 1;
+      rt.dispose();
+      pmrem.dispose();
+    };
+  }, [gl, scene, intensity]);
+  return null;
 }
 
 function ChairModel() {

@@ -3,6 +3,7 @@ import { playlist } from "../lib/playlist";
 
 const IMAGE_ASSETS = [
   "/bg.png",
+  "/bg-furina.png",
   "/my-photo.png",
   "/photo-hero-1-mini.gif",
   "/furina-photo-mini-2-hero.jpg",
