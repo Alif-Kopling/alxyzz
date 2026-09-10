@@ -128,6 +128,7 @@ export function CapabilitiesPan() {
 
       <div
         ref={track}
+        data-skill-track
         className="relative z-10 flex h-[100dvh] items-center gap-4 px-4 will-change-transform md:gap-5 md:px-6"
       >
         {items.map((item) => (

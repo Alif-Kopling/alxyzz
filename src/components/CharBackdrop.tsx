@@ -3,6 +3,8 @@ import { Canvas } from "@react-three/fiber";
 import { useGLTF } from "@react-three/drei";
 import { useReducedMotion } from "motion/react";
 import { CharModel } from "./CharModel";
+import { livePose, usePoseVersion } from "./charPose";
+import { FacePanel, PosePanel } from "./PosePanel";
 
 type Props = {
   progressRef: React.MutableRefObject<number>;
@@ -14,6 +16,23 @@ export function CharBackdrop({ progressRef }: Props) {
   const [visible, setVisible] = useState(false);
   const [inView, setInView] = useState(true);
   const mouseRef = useRef({ x: 0, y: 0 });
+  // Panel tuning disembunyiin — muncul cuma via shortcut rahasia Ctrl+Alt+,
+  const [tuningOn, setTuningOn] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.altKey && e.key === ",") {
+        e.preventDefault();
+        setTuningOn((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  // ikut re-render pas panel tuning digeser (kursi + boost dibaca live)
+  usePoseVersion();
+  const boost = livePose.current.boost ?? 1.3;
+  // pivot titik dudukan (y≈-1.05) + turun 0.12 biar ujung topi tidak kepotong
+  const boostY = -1.05 * (1 - boost) - 0.12;
 
   // gate: hanya mount Canvas saat section dekat viewport (hemat chunk & GPU first paint)
   useEffect(() => {
@@ -92,10 +111,22 @@ export function CharBackdrop({ progressRef }: Props) {
           <directionalLight position={[-1.5, 1, 2.5]} intensity={0.35} color={0xffd9b0} />
 
           <Suspense fallback={null}>
-            <ChairModel />
-            <CharModel progressRef={progressRef} mouseRef={mouseRef} reduced={reduce ?? false} />
+            {/* Boost +30%: char + kursi di-scale BARENG dari titik dudukan
+                (y≈-1.05) biar pantat tetap nangkring; assembly
+                diturunin 0.12 biar ujung topi tidak kepotong atas layar.
+                Scale uniform → arah world-space solve pose tidak berubah. */}
+            <group position={[0, boostY, 0]} scale={boost}>
+              <ChairModel />
+              <CharModel progressRef={progressRef} mouseRef={mouseRef} reduced={reduce ?? false} />
+            </group>
           </Suspense>
         </Canvas>
+      )}
+      {visible && tuningOn && (
+        <>
+          <PosePanel />
+          <FacePanel />
+        </>
       )}
     </div>
   );
@@ -103,9 +134,9 @@ export function CharBackdrop({ progressRef }: Props) {
 
 function ChairModel() {
   const { scene } = useGLTF("/chair.glb");
-  // Kursi plastik sengaja — buat komedi. Angka dikunci dari hasil tuning user,
-  // digeser -0.4 di X ngikutin char yang dipindah ke tengah (0.36 - 0.4).
-  return <primitive object={scene} position={[-0.04, -1.17, -0.14]} rotation={[0, 0.38, 0]} scale={1.25} />;
+  // Kursi plastik sengaja — buat komedi. Posisi/yaw/scale ngikut panel tuning.
+  const c = livePose.current.chair;
+  return <primitive object={scene} position={[c.x, c.y, c.z]} rotation={[0, c.yaw, 0]} scale={c.scale} />;
 }
 
 useGLTF.preload("/chair.glb");

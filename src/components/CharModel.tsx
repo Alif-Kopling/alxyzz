@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
+import { livePose } from "./charPose";
 
 type Props = {
   progressRef?: React.MutableRefObject<number>;
@@ -371,13 +372,60 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
   const poseTargets = useRef(new Map<string, THREE.Quaternion>());
   const headBase = useRef(new Map<string, THREE.Quaternion>());
 
+  // smoothing buat panel kontrol live (biar gerakan halus, tidak snap)
+  const smoothAdd = useRef<Record<string, { x: number; y: number; z: number }>>({});
+  const groupSm = useRef({ x: GROUP_X, y: MODEL_Y, yaw: SIT_YAW, scale: BASE_SCALE });
+  const faceSm = useRef({ ex: 0, ey: 0, blink: 0, smile: 1 });
+
+  const sm3 = (key: string, t: { x: number; y: number; z: number }, k: number) => {
+    const S = smoothAdd.current;
+    let s = S[key];
+    if (!s) {
+      s = S[key] = { x: t.x, y: t.y, z: t.z };
+      return s;
+    }
+    s.x += (t.x - s.x) * k;
+    s.y += (t.y - s.y) * k;
+    s.z += (t.z - s.z) * k;
+    return s;
+  };
+
+  const addE = (b: THREE.Object3D | null, s: { x: number; y: number; z: number }) => {
+    if (!b) return;
+    if (s.x === 0 && s.y === 0 && s.z === 0) return;
+    _euler.set(s.x, s.y, s.z);
+    b.quaternion.multiply(_qAdd.setFromEuler(_euler));
+  };
+
+  // pasangan [bone, target-additive-dari-panel] — pose solved tetap jadi basis
+  const additivePairs = () => {
+    const P = livePose.current;
+    return [
+      [chestRef.current, P.chest],
+      [hipsRef.current, P.hips],
+      [armRefs.current.lArm, P.upperArmL],
+      [armRefs.current.lElbow, P.elbowL],
+      [armRefs.current.lWrist, P.wristL],
+      [armRefs.current.rArm, P.upperArmR],
+      [armRefs.current.rElbow, P.elbowR],
+      [armRefs.current.rWrist, P.wristR],
+      [legRefs.current.leftThigh, P.thighL],
+      [legRefs.current.leftKnee, P.kneeL],
+      [legRefs.current.leftAnkle, P.ankleL],
+      [legRefs.current.rightThigh, P.thighR],
+      [legRefs.current.rightKnee, P.kneeR],
+      [legRefs.current.rightAnkle, P.ankleR],
+    ] as Array<[THREE.Object3D | null, { x: number; y: number; z: number }]>;
+  };
+
   useFrame(({ clock }, delta) => {
     if (!group.current) return;
     const t = clock.elapsedTime;
 
-    // reduced-motion: langsung pose final, statis
+    // reduced-motion: langsung pose final, statis (+ additive panel mentah)
     if (reduced) {
       poseT.current = 1;
+      const P0 = livePose.current;
       const posedStatic = [
         armRefs.current.lShoulder, armRefs.current.rShoulder,
         armRefs.current.lArm, armRefs.current.rArm,
@@ -395,18 +443,38 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
         const tgt = poseTargets.current.get(b.name);
         if (tgt) b.quaternion.copy(tgt);
       }
+      for (const [b, t] of additivePairs()) {
+        if (!b) continue;
+        if (t.x === 0 && t.y === 0 && t.z === 0) continue;
+        _euler.set(t.x, t.y, t.z);
+        b.quaternion.multiply(_qAdd.setFromEuler(_euler));
+      }
+      const head0 = headRef.current;
+      if (head0) {
+        const base0 = headBase.current.get(head0.name);
+        _euler.set(P0.head.x, P0.head.y, P0.head.z);
+        const qh = _qAdd.setFromEuler(_euler).clone();
+        if (base0) head0.quaternion.copy(base0).multiply(qh);
+        else head0.quaternion.copy(qh);
+      }
+      const F0 = P0.face ?? { eyeX: 0, eyeY: 0, blink: 0, smile: 1, auto: true };
+      _qEyeYaw.setFromAxisAngle(_Y_AXIS, (F0.eyeY || 0) * 0.45);
+      _qEyePitch.setFromAxisAngle(_X_AXIS, (F0.eyeX || 0) * 0.35);
       for (const eye of [faceRefs.current.leftEye, faceRefs.current.rightEye]) {
         if (!eye) continue;
+        const base = restQuats.get(eye.name);
         const baseScale = restScales.get(eye.name);
-        if (baseScale) eye.scale.copy(baseScale);
+        if (base) eye.quaternion.copy(base).multiply(_qEyeYaw).multiply(_qEyePitch);
+        if (baseScale) eye.scale.set(baseScale.x, baseScale.y * (1 - Math.min(1, F0.blink || 0) * 0.85), baseScale.z);
       }
       const mouthBase = faceRefs.current.mouth && restQuats.get(faceRefs.current.mouth.name);
       if (faceRefs.current.mouth && mouthBase) {
-        faceRefs.current.mouth.quaternion.copy(mouthBase).multiply(_qSmile);
+        _qSmileDyn.setFromAxisAngle(_Z_AXIS, -0.12 * (F0.smile ?? 1));
+        faceRefs.current.mouth.quaternion.copy(mouthBase).multiply(_qSmileDyn);
       }
-      group.current.position.set(GROUP_X, MODEL_Y, 0);
-      group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-      group.current.rotation.set(0, SIT_YAW, 0);
+      group.current.position.set(P0.group.x, P0.group.y, 0);
+      group.current.scale.set(P0.group.scale, P0.group.scale, P0.group.scale);
+      group.current.rotation.set(0, P0.group.yaw, 0);
       return;
     }
 
@@ -414,10 +482,16 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     poseT.current = Math.min(poseT.current + delta * 0.85, 1);
     const ease = 1 - Math.pow(1 - poseT.current, 3); // easeOut
 
-    // kaki napak: group dikunci, tidak ada idleY / scale breathing / sway badan
-    // (sebelumnya seluruh tubuh naik-turun → kelihatan ngambang)
-    group.current.position.set(GROUP_X, MODEL_Y, 0);
-    group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
+    // grup ngikut panel (di-smoothing biar halus, tidak snap)
+    const P = livePose.current;
+    const kk = 1 - Math.exp(-(P.smooth || 8) * delta);
+    const G = groupSm.current;
+    G.x += (P.group.x - G.x) * kk;
+    G.y += (P.group.y - G.y) * kk;
+    G.yaw += (P.group.yaw - G.yaw) * kk;
+    G.scale += (P.group.scale - G.scale) * kk;
+    group.current.position.set(G.x, G.y, 0);
+    group.current.scale.set(G.scale, G.scale, G.scale);
     const idleRotZ = 0; // kepala roll dimatikan biar tidak goyang
 
     // ---- lengan + kaki + torso: blend base(T-pose) → target(world-space solved) + micro sway ----
@@ -441,16 +515,23 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       if (base && tgt) b.quaternion.copy(base).slerp(tgt, ease);
     }
     // micro life HANYA di siku + wrist (bahu/lengan atas dikunci biar siluet A-pose stabil)
-    const microElbow = 0.05 * ease;
+    const microAmt = P.micro ?? 1;
+    const microElbow = 0.05 * ease * microAmt;
     if (armRefs.current.lElbow)
       armRefs.current.lElbow.quaternion.multiply(_qTmp.setFromAxisAngle(_X_AXIS, Math.sin(t * 0.8) * microElbow));
     if (armRefs.current.rElbow)
       armRefs.current.rElbow.quaternion.multiply(_qTmp.setFromAxisAngle(_X_AXIS, Math.sin(t * 0.84 + 0.6) * microElbow));
     // wrist sway halus biar jari/tangan tidak mati
     if (armRefs.current.lWrist)
-      armRefs.current.lWrist.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, Math.sin(t * 0.7 + 0.3) * 0.02 * ease));
+      armRefs.current.lWrist.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, Math.sin(t * 0.7 + 0.3) * 0.02 * ease * microAmt));
     if (armRefs.current.rWrist)
-      armRefs.current.rWrist.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, Math.sin(t * 0.74) * 0.02 * ease));
+      armRefs.current.rWrist.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, Math.sin(t * 0.74) * 0.02 * ease * microAmt));
+
+    // ---- panel kontrol live: additive halus di atas pose solved ----
+    for (const [b, t] of additivePairs()) {
+      if (!b) continue;
+      addE(b, sm3(b.name, t, kk));
+    }
 
     // ---- torso ikut pose duduk (jangan di-reset ke base, biar twist elegan ke-keep) ----
     // (sebelumnya chest/hips selalu dibalikin ke base → badan frontal kaku)
@@ -471,24 +552,33 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     pitchRef.current = THREE.MathUtils.lerp(pitchRef.current, targetPitch, lerp * 0.08 + 0.02);
 
     const head = headRef.current;
-    // Group selalu 3/4 view duduk (jangan di-overwrite mouse)
-    group.current.rotation.set(0, SIT_YAW, 0);
+    // Group ngikut smoothing panel (jangan di-overwrite mouse)
+    group.current.rotation.set(0, G.yaw, 0);
     if (head) {
       // additive di atas rest-pose: jangan overwrite Euler (rest Head_06 tidak nol → snap)
       // bob dibuat kecil, hanya kepala yang gerak (badan dikunci)
       const base = headBase.current.get(head.name);
       const bob = Math.sin(t * 0.5) * 0.02 * ease;
-      _qYaw.setFromAxisAngle(_Y_AXIS, yawRef.current);
-      _qPitch.setFromAxisAngle(_X_AXIS, pitchRef.current + bob);
-      _qRoll.setFromAxisAngle(_Z_AXIS, idleRotZ * 0.6);
+      const hs = sm3("__head", P.head, kk);
+      _qYaw.setFromAxisAngle(_Y_AXIS, yawRef.current + hs.y);
+      _qPitch.setFromAxisAngle(_X_AXIS, pitchRef.current + bob + hs.x);
+      _qRoll.setFromAxisAngle(_Z_AXIS, idleRotZ * 0.6 + hs.z);
       if (base) head.quaternion.copy(base).multiply(_qYaw).multiply(_qPitch).multiply(_qRoll);
       else head.quaternion.identity().multiply(_qYaw).multiply(_qPitch).multiply(_qRoll);
     }
 
+    // ---- wajah dari panel (smoothing biar halus) ----
+    const F = P.face ?? { eyeX: 0, eyeY: 0, blink: 0, smile: 1, auto: true };
+    const fs = faceSm.current;
+    fs.ex += ((F.eyeX || 0) - fs.ex) * kk;
+    fs.ey += ((F.eyeY || 0) - fs.ey) * kk;
+    fs.blink += ((F.blink || 0) - fs.blink) * kk;
+    fs.smile += (((F.smile ?? 1)) - fs.smile) * kk;
     const blinkPhase = t % 6.5;
-    const blink = blinkPhase < 0.22 ? Math.sin((blinkPhase / 0.22) * Math.PI) : 0;
-    _qEyeYaw.setFromAxisAngle(_Y_AXIS, yawRef.current * 0.45);
-    _qEyePitch.setFromAxisAngle(_X_AXIS, pitchRef.current * 0.35);
+    const autoBlink = F.auto === false ? 0 : (blinkPhase < 0.22 ? Math.sin((blinkPhase / 0.22) * Math.PI) : 0);
+    const blink = Math.min(1, autoBlink + fs.blink);
+    _qEyeYaw.setFromAxisAngle(_Y_AXIS, yawRef.current * 0.45 + fs.ey);
+    _qEyePitch.setFromAxisAngle(_X_AXIS, pitchRef.current * 0.35 + fs.ex);
     for (const eye of [faceRefs.current.leftEye, faceRefs.current.rightEye]) {
       if (!eye) continue;
       const base = restQuats.get(eye.name);
@@ -498,7 +588,10 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     }
     const mouth = faceRefs.current.mouth;
     const mouthBase = mouth && restQuats.get(mouth.name);
-    if (mouth && mouthBase) mouth.quaternion.copy(mouthBase).multiply(_qSmile);
+    if (mouth && mouthBase) {
+      _qSmileDyn.setFromAxisAngle(_Z_AXIS, -0.12 * fs.smile);
+      mouth.quaternion.copy(mouthBase).multiply(_qSmileDyn);
+    }
   });
 
   // skala & posisi: duduk di kanan biar tidak ketutup kartu tengah, full-body kelihatan
@@ -517,6 +610,9 @@ const restScales = new Map<string, THREE.Vector3>();
 // tmp objects module-scope (hindari alokasi per-frame)
 const _qTmp = new THREE.Quaternion();
 const _qTmp2 = new THREE.Quaternion();
+const _euler = new THREE.Euler();
+const _qAdd = new THREE.Quaternion();
+const _qSmileDyn = new THREE.Quaternion();
 const _qYaw = new THREE.Quaternion();
 const _qPitch = new THREE.Quaternion();
 const _qRoll = new THREE.Quaternion();
