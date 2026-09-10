@@ -10,8 +10,11 @@ type Props = {
   reduced?: boolean;
 };
 
-const BASE_SCALE = 1.55;
-const MODEL_Y = -1.8;
+const BASE_SCALE = 1.32;
+const MODEL_Y = -1.55;
+// Tengah: char pas di center (permintaan user), tetap 3/4 view
+const GROUP_X = 0;
+const SIT_YAW = -0.42;
 
 export function CharModel({ progressRef, mouseRef, reduced }: Props) {
   const group = useRef<THREE.Group>(null);
@@ -229,10 +232,11 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
           .multiply(rest.clone());
       };
       // karakter menghadap +Z (kamera di +Z): depan = +Z
-      const UP_L = V(0.18, -1, 0.18); // lengan atas: hampir vertikal ke bawah + sedikit keluar & depan
-      const UP_R = V(-0.18, -1, 0.18);
-      const FORE_L = V(0.12, -0.7, 0.7); // lengan bawah: bawah-depan (siku nekuk ~50-60°)
-      const FORE_R = V(-0.12, -0.7, 0.7);
+      // Duduk elegan: lengan jatuh ke samping-bawah (ke armrest/paha), bukan ke depan
+      const UP_L = V(0.42, -1, 0.1); // lengan atas: turun + buka ke samping
+      const UP_R = V(-0.42, -1, 0.1);
+      const FORE_L = V(0.18, -0.85, 0.35); // lengan bawah: turun, sedikit depan, jatuh di paha
+      const FORE_R = V(-0.18, -0.85, 0.35);
 
       // Hierarki asli: Chest -> shoulder(clavicle) -> arm(upper arm) -> elbow -> wrist.
       // URUTAN MENENTUKAN: parent dulu baru child, karena aim child diukur dalam parent-frame terbaru.
@@ -296,32 +300,51 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       followDelta(regs.lElbow?.name, regs.lHandTwist, 0.5);
       followDelta(regs.rElbow?.name, regs.rHandTwist, 0.5);
 
-      const setSittingPose = (
-        thigh: THREE.Object3D | null,
-        knee: THREE.Object3D | null,
-        ankle: THREE.Object3D | null,
-      ) => {
-        if (!thigh || !knee || !ankle) return;
-        const thighBase = restQuats.get(thigh.name);
-        const kneeBase = restQuats.get(knee.name);
-        const ankleBase = restQuats.get(ankle.name);
-        if (!thighBase || !kneeBase || !ankleBase) return;
-        const thighPose = thighBase.clone()
-          .multiply(_qSitThigh)
-          .multiply(thigh === legRefs.current.leftThigh ? _qSitLeftCross : _qSitRightCross);
-        const kneePose = kneeBase.clone()
-          .multiply(_qSitKnee)
-          .multiply(knee === legRefs.current.leftKnee ? _qTopKnee : _qBottomKnee);
-        const anklePose = ankleBase.clone().multiply(_qSitAnkle);
-        poseTargets.current.set(thigh.name, thighPose);
-        poseTargets.current.set(knee.name, kneePose);
-        poseTargets.current.set(ankle.name, anklePose);
-        thigh.quaternion.copy(thighPose);
-        knee.quaternion.copy(kneePose);
-        ankle.quaternion.copy(anklePose);
-      };
-      setSittingPose(legRefs.current.leftThigh, legRefs.current.leftKnee, legRefs.current.leftAnkle);
-      setSittingPose(legRefs.current.rightThigh, legRefs.current.rightKnee, legRefs.current.rightAnkle);
+      // === KAKI DUDUK: pakai world-space aim (bukan tebak sumbu lokal) ===
+      // Sumbu lokal bone FBX tidak terdokumentasi — tebakan X/Y sebelumnya
+      // bikin kaki maju paralel, bukan nyilang. Solusi: ukur arah di world,
+      // putar ke target, konversi ke quat lokal (sama kayak lengan).
+      // Target: kedua paha ke SATU sisi (kanan layar, +X) biar feminin,
+      // kanan = atas menumpuk di atas kiri.
+      const THIGH_BOTTOM = V(0.32, -0.1, 1); // kiri bawah: depan-kanan, lutut sedikit di bawah pinggul
+      const THIGH_TOP = V(0.48, 0.08, 0.88); // kanan atas: lebih ke kanan + sedikit naik (numpuk)
+      const SHIN_BOTTOM = V(0.12, -1, 0.3); // betis bawah: vertikal, sedikit depan
+      const SHIN_TOP = V(-0.24, -1, 0.42); // betis atas: nyilang balik ke kiri + depan (ngunci silangan)
+
+      // Torso dulu (parent dari paha) biar frame parent sudah final saat solve kaki
+      if (chestRef.current) {
+        const base = restQuats.get(chestRef.current.name);
+        if (base) {
+          const q = base.clone().multiply(_qChestSit);
+          poseTargets.current.set(chestRef.current.name, q);
+          chestRef.current.quaternion.copy(q);
+        }
+      }
+      if (hipsRef.current) {
+        const base = restQuats.get(hipsRef.current.name);
+        if (base) {
+          const q = base.clone().multiply(_qHipsSit);
+          poseTargets.current.set(hipsRef.current.name, q);
+          hipsRef.current.quaternion.copy(q);
+        }
+      }
+      scene.updateMatrixWorld(true);
+
+      // Paha: FULL aim setelah torso final
+      const L = legRefs.current;
+      if (L.leftThigh && L.leftKnee) solveFull(L.leftThigh, L.leftKnee, THIGH_BOTTOM);
+      if (L.rightThigh && L.rightKnee) solveFull(L.rightThigh, L.rightKnee, THIGH_TOP);
+      // Lutut: dihitung SETELAH paha final
+      if (L.leftKnee && L.leftAnkle) solveFull(L.leftKnee, L.leftAnkle, SHIN_BOTTOM);
+      if (L.rightKnee && L.rightAnkle) solveFull(L.rightKnee, L.rightAnkle, SHIN_TOP);
+      // Ankle: tekuk lokal biar telapak rata (tidak perlu world aim)
+      for (const a of [L.leftAnkle, L.rightAnkle]) {
+        if (!a) continue;
+        const rest = restQuats.get(a.name) ?? a.quaternion.clone();
+        const q = rest.clone().multiply(_qSitAnkle);
+        poseTargets.current.set(a.name, q);
+        a.quaternion.copy(q);
+      }
       // eslint-disable-next-line no-console
       console.info("[CharModel] pose solved (world-space): shoulders down, elbows bent, wrists + twist");
     } catch (err) {
@@ -365,6 +388,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
         legRefs.current.leftThigh, legRefs.current.rightThigh,
         legRefs.current.leftKnee, legRefs.current.rightKnee,
         legRefs.current.leftAnkle, legRefs.current.rightAnkle,
+        chestRef.current, hipsRef.current,
       ];
       for (const b of posedStatic) {
         if (!b) continue;
@@ -380,9 +404,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       if (faceRefs.current.mouth && mouthBase) {
         faceRefs.current.mouth.quaternion.copy(mouthBase).multiply(_qSmile);
       }
-      group.current.position.y = MODEL_Y;
+      group.current.position.set(GROUP_X, MODEL_Y, 0);
       group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
-      group.current.rotation.set(0, 0, 0);
+      group.current.rotation.set(0, SIT_YAW, 0);
       return;
     }
 
@@ -392,11 +416,11 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
 
     // kaki napak: group dikunci, tidak ada idleY / scale breathing / sway badan
     // (sebelumnya seluruh tubuh naik-turun → kelihatan ngambang)
-    group.current.position.y = MODEL_Y;
+    group.current.position.set(GROUP_X, MODEL_Y, 0);
     group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
     const idleRotZ = 0; // kepala roll dimatikan biar tidak goyang
 
-    // ---- lengan: blend base(T-pose) → target(world-space solved) + micro sway ----
+    // ---- lengan + kaki + torso: blend base(T-pose) → target(world-space solved) + micro sway ----
     // slerp tiap frame dari base (reset dulu) → tidak ada akumulasi drift
     const posed = [
       armRefs.current.lShoulder, armRefs.current.rShoulder,
@@ -408,6 +432,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       legRefs.current.leftThigh, legRefs.current.rightThigh,
       legRefs.current.leftKnee, legRefs.current.rightKnee,
       legRefs.current.leftAnkle, legRefs.current.rightAnkle,
+      chestRef.current, hipsRef.current,
     ];
     for (const b of posed) {
       if (!b) continue;
@@ -427,16 +452,8 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     if (armRefs.current.rWrist)
       armRefs.current.rWrist.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, Math.sin(t * 0.74) * 0.02 * ease));
 
-    // ---- badan dikunci: chest/hips balik ke base (tidak ada napas/sway) ----
-    // chest breathing sebelumnya ikut gerakin bahu+lengan+kepala (child of chest) → seluruh tubuh goyang
-    if (chestRef.current) {
-      const base = baseQuats.current.get(chestRef.current.name);
-      if (base) chestRef.current.quaternion.copy(base);
-    }
-    if (hipsRef.current) {
-      const base = baseQuats.current.get(hipsRef.current.name);
-      if (base) hipsRef.current.quaternion.copy(base);
-    }
+    // ---- torso ikut pose duduk (jangan di-reset ke base, biar twist elegan ke-keep) ----
+    // (sebelumnya chest/hips selalu dibalikin ke base → badan frontal kaku)
 
     // scroll yaw: kartu bergerak ke kiri → tatapan ngikut ke kiri (progress 0→1)
     const p = progressRef?.current ?? 0;
@@ -454,6 +471,8 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     pitchRef.current = THREE.MathUtils.lerp(pitchRef.current, targetPitch, lerp * 0.08 + 0.02);
 
     const head = headRef.current;
+    // Group selalu 3/4 view duduk (jangan di-overwrite mouse)
+    group.current.rotation.set(0, SIT_YAW, 0);
     if (head) {
       // additive di atas rest-pose: jangan overwrite Euler (rest Head_06 tidak nol → snap)
       // bob dibuat kecil, hanya kepala yang gerak (badan dikunci)
@@ -464,10 +483,6 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       _qRoll.setFromAxisAngle(_Z_AXIS, idleRotZ * 0.6);
       if (base) head.quaternion.copy(base).multiply(_qYaw).multiply(_qPitch).multiply(_qRoll);
       else head.quaternion.identity().multiply(_qYaw).multiply(_qPitch).multiply(_qRoll);
-    } else {
-      group.current.rotation.y = yawRef.current;
-      group.current.rotation.x = pitchRef.current * 0.5;
-      group.current.rotation.z = idleRotZ;
     }
 
     const blinkPhase = t % 6.5;
@@ -486,9 +501,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     if (mouth && mouthBase) mouth.quaternion.copy(mouthBase).multiply(_qSmile);
   });
 
-  // skala & posisi: patung di tengah belakang, kaki di bawah horizon
+  // skala & posisi: duduk di kanan biar tidak ketutup kartu tengah, full-body kelihatan
   return (
-    <group ref={group} position={[0, MODEL_Y, 0]} scale={BASE_SCALE}>
+    <group ref={group} position={[GROUP_X, MODEL_Y, 0]} scale={BASE_SCALE} rotation={[0, SIT_YAW, 0]}>
       <primitive object={gltf.scene} />
     </group>
   );
@@ -511,12 +526,24 @@ const _X_AXIS = new THREE.Vector3(1, 0, 0);
 const _Y_AXIS = new THREE.Vector3(0, 1, 0);
 const _Z_AXIS = new THREE.Vector3(0, 0, 1);
 const _qSmile = new THREE.Quaternion().setFromAxisAngle(_Z_AXIS, -0.12);
-const _qSitThigh = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.78);
-const _qSitKnee = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, 1.35);
-const _qSitAnkle = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.25);
-const _qSitLeftCross = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.78);
-const _qSitRightCross = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, -0.32);
-const _qTopKnee = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.18);
-const _qBottomKnee = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, -0.06);
+// Duduk Furina: paha horizontal (~83°), lutut nekuk ~87° biar shin vertikal
+const _qSitThigh = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -1.45);
+const _qSitKnee = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, 1.52);
+const _qSitAnkle = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.28);
+// Silang ke SATU sisi (kanan di atas kiri): dua-duanya yaw positif, yang atas lebih besar
+const _qSitTopCross = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.62);
+const _qSitBottomCross = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.48);
+// Tumpuk vertikal: kaki atas sedikit terangkat, bawah sedikit turun
+const _qSitTopLift = new THREE.Quaternion().setFromAxisAngle(_Z_AXIS, -0.14);
+const _qSitBottomLift = new THREE.Quaternion().setFromAxisAngle(_Z_AXIS, 0.08);
+// Lutut: atas sedikit lebih lurus, bawah lebih nekuk + yaw searah biar shin rapat
+const _qSitTopStraight = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.14);
+const _qSitBottomBend = new THREE.Quaternion().setFromAxisAngle(_X_AXIS, 0.16);
+const _qTopKneeYaw = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.14);
+const _qBottomKneeYaw = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.1);
+// Torso twist elegan (jangan frontal): pinggul + dada miring ke sisi kaki silang
+const _qChestSit = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.3)
+  .multiply(new THREE.Quaternion().setFromAxisAngle(_X_AXIS, -0.08));
+const _qHipsSit = new THREE.Quaternion().setFromAxisAngle(_Y_AXIS, 0.26);
 
 useGLTF.preload("/char.glb");

@@ -79,15 +79,17 @@ export function CharBackdrop({ progressRef }: Props) {
           dpr={[0.8, 1]}
           frameloop={inView ? "always" : "never"}
           gl={{ alpha: true, antialias: false, stencil: false, powerPreference: "low-power" }}
-          camera={{ position: [0, 0.35, 3.2], fov: 34 }}
+          camera={{ position: [0, 0.05, 3.7], fov: 32 }}
           style={{ background: "transparent" }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
           }}
         >
-          {/* lights: 2 saja (hemat shader) + tanpa HDRI download */}
-          <hemisphereLight intensity={0.9} args={[0xfff6e5, 0x1a1025, 0.9]} />
-          <directionalLight position={[2.5, 4, 2]} intensity={1.35} />
+          {/* key warm + rim biru ala Furina + fill lembut biar kulit tidak abu pucat */}
+          <hemisphereLight intensity={0.85} args={[0xfff6e5, 0x1a1025, 0.85]} />
+          <directionalLight position={[2.5, 4, 2]} intensity={1.25} color={0xfff1dd} />
+          <directionalLight position={[-2.5, 2.5, -2]} intensity={1.1} color={0x8ea2ff} />
+          <directionalLight position={[-1.5, 1, 2.5]} intensity={0.35} color={0xffd9b0} />
 
           <Suspense fallback={null}>
             <ChairModel />
@@ -101,7 +103,9 @@ export function CharBackdrop({ progressRef }: Props) {
 
 function ChairModel() {
   const { scene } = useGLTF("/chair.glb");
-  return <primitive object={scene} position={[0, -1.45, -0.65]} scale={1.25} />;
+  // Kursi plastik sengaja — buat komedi. Angka dikunci dari hasil tuning user,
+  // digeser -0.4 di X ngikutin char yang dipindah ke tengah (0.36 - 0.4).
+  return <primitive object={scene} position={[-0.04, -1.17, -0.14]} rotation={[0, 0.38, 0]} scale={1.25} />;
 }
 
 useGLTF.preload("/chair.glb");
