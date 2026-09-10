@@ -8,6 +8,7 @@ import { CharModel } from "./CharModel";
 import { livePose, usePoseVersion } from "./charPose";
 import { FacePanel, PosePanel } from "./PosePanel";
 import { dimensionStore, isDimensionReady, useDimensionVersion } from "../lib/dimension";
+import { headTrack, triggerAnger } from "../lib/anger";
 
 type Props = {
   progressRef: React.MutableRefObject<number>;
@@ -98,6 +99,38 @@ export function CharBackdrop({ progressRef }: Props) {
   // reduced motion → statis: CharModel langsung pasang pose final tanpa sway (lihat prop reduced)
   // Canvas pointer-events-none biar tidak nyolong scroll/touch kartu
 
+  // klik kepala Furina → ngambek. Guard jarak pointerdown-click biar
+  // scroll/swipe tidak kepicu. Kepala diproyeksi ke layar tiap klik.
+  useEffect(() => {
+    const el = containerRef.current?.parentElement;
+    if (!el) return;
+    let dx = 0;
+    let dy = 0;
+    const onDown = (e: PointerEvent) => {
+      dx = e.clientX;
+      dy = e.clientY;
+    };
+    const onClick = (e: MouseEvent) => {
+      if (Math.hypot(e.clientX - dx, e.clientY - dy) > 8) return;
+      const tr = headTrack;
+      if (!tr.valid || !tr.cam) return;
+      const box = containerRef.current?.getBoundingClientRect();
+      if (!box || box.width === 0) return;
+      _pv.set(tr.x, tr.y, tr.z).project(tr.cam);
+      if (_pv.z > 1) return;
+      const sx = box.left + (_pv.x * 0.5 + 0.5) * box.width;
+      const sy = box.top + (-_pv.y * 0.5 + 0.5) * box.height;
+      if (Math.hypot(e.clientX - sx, e.clientY - sy) > 95) return;
+      triggerAnger();
+    };
+    el.addEventListener("pointerdown", onDown);
+    el.addEventListener("click", onClick);
+    return () => {
+      el.removeEventListener("pointerdown", onDown);
+      el.removeEventListener("click", onClick);
+    };
+  }, []);
+
   return (
     <div
       ref={containerRef}
@@ -181,6 +214,9 @@ function Env({ intensity = 0.5 }: { intensity?: number }) {
   }, [gl, scene, intensity]);
   return null;
 }
+
+// tmp proyeksi kepala ke layar (deteksi klik)
+const _pv = new THREE.Vector3();
 
 function ChairModel() {
   const { scene } = useGLTF("/chair.glb");

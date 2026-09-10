@@ -4,6 +4,8 @@ import { useFrame } from "@react-three/fiber";
 import { useGLTF, useAnimations } from "@react-three/drei";
 import * as THREE from "three";
 import { livePose } from "./charPose";
+import { attentionRef } from "../lib/attention";
+import { angerRef, headTrack } from "../lib/anger";
 
 type Props = {
   progressRef?: React.MutableRefObject<number>;
@@ -376,6 +378,8 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
   const smoothAdd = useRef<Record<string, { x: number; y: number; z: number }>>({});
   const groupSm = useRef({ x: GROUP_X, y: MODEL_Y, yaw: SIT_YAW, scale: BASE_SCALE });
   const faceSm = useRef({ ex: 0, ey: 0, blink: 0, smile: 1 });
+  // perhatian ke kartu yang di-hover (nengok + angguk, di-smoothing)
+  const attSm = useRef({ s: 0, dx: 0 });
 
   const sm3 = (key: string, t: { x: number; y: number; z: number }, k: number) => {
     const S = smoothAdd.current;
@@ -418,7 +422,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     ] as Array<[THREE.Object3D | null, { x: number; y: number; z: number }]>;
   };
 
-  useFrame(({ clock }, delta) => {
+  useFrame(({ clock, camera }, delta) => {
     if (!group.current) return;
     const t = clock.elapsedTime;
 
@@ -426,6 +430,14 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     if (reduced) {
       poseT.current = 1;
       const P0 = livePose.current;
+      // amarah klik-kepala versi statis (tanpa geleng, biar tidak goyang)
+      const at0 = performance.now() / 1000 - angerRef.start;
+      let pout0 = 0, frown0 = 0;
+      if (at0 >= 0 && at0 < 1.4) {
+        const env0 = Math.sin((at0 / 1.4) * Math.PI);
+        pout0 = 0.12 * env0;
+        frown0 = env0;
+      }
       const posedStatic = [
         armRefs.current.lShoulder, armRefs.current.rShoulder,
         armRefs.current.lArm, armRefs.current.rArm,
@@ -452,10 +464,24 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       const head0 = headRef.current;
       if (head0) {
         const base0 = headBase.current.get(head0.name);
-        _euler.set(P0.head.x, P0.head.y, P0.head.z);
+        _euler.set(P0.head.x + pout0, P0.head.y, P0.head.z);
         const qh = _qAdd.setFromEuler(_euler).clone();
         if (base0) head0.quaternion.copy(base0).multiply(qh);
         else head0.quaternion.copy(qh);
+        // hover kartu: nengok mentah (tanpa smoothing) ke arah kartu
+        const att0 = attentionRef.current;
+        if (att0.active) {
+          _euler.set(0.16, att0.dx * 0.25, 0);
+          head0.quaternion.multiply(_qAdd.setFromEuler(_euler));
+        }
+        head0.getWorldPosition(_vHead);
+        headTrack.x = _vHead.x;
+        headTrack.y = _vHead.y;
+        headTrack.z = _vHead.z;
+        headTrack.cam = camera;
+        headTrack.valid = true;
+      } else {
+        headTrack.valid = false;
       }
       const F0 = P0.face ?? { eyeX: 0, eyeY: 0, blink: 0, smile: 1, auto: true };
       _qEyeYaw.setFromAxisAngle(_Y_AXIS, (F0.eyeY || 0) * 0.45);
@@ -471,6 +497,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
       if (faceRefs.current.mouth && mouthBase) {
         _qSmileDyn.setFromAxisAngle(_Z_AXIS, -0.12 * (F0.smile ?? 1));
         faceRefs.current.mouth.quaternion.copy(mouthBase).multiply(_qSmileDyn);
+        if (frown0 > 0) {
+          faceRefs.current.mouth.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, 0.3 * frown0));
+        }
       }
       group.current.position.set(P0.group.x, P0.group.y, 0);
       group.current.scale.set(P0.group.scale, P0.group.scale, P0.group.scale);
@@ -554,17 +583,43 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     const head = headRef.current;
     // Group ngikut smoothing panel (jangan di-overwrite mouse)
     group.current.rotation.set(0, G.yaw, 0);
+    // perhatian: nengok ke kartu yang di-hover + angguk dikit (smoothing biar halus)
+    const att = attentionRef.current;
+    const as = attSm.current;
+    as.s += ((att.active ? 1 : 0) - as.s) * kk;
+    as.dx += ((att.dx || 0) - as.dx) * kk;
+    const attYaw = as.s * as.dx * 0.25;
+    const attPitch = as.s * 0.16;
+    // amarah dipicu klik kepala: geleng cepat + manyun (~1.4 detik).
+    // Mata sengaja tetap melek (tanpa sipit) biar keliatan melotot marah.
+    const at = performance.now() / 1000 - angerRef.start;
+    let shakeYaw = 0, pout = 0, frown = 0;
+    if (at >= 0 && at < 1.4) {
+      const env = Math.sin((at / 1.4) * Math.PI);
+      shakeYaw = Math.sin(at * 38) * 0.14 * env;
+      pout = 0.12 * env;
+      frown = env;
+    }
     if (head) {
       // additive di atas rest-pose: jangan overwrite Euler (rest Head_06 tidak nol → snap)
       // bob dibuat kecil, hanya kepala yang gerak (badan dikunci)
       const base = headBase.current.get(head.name);
       const bob = Math.sin(t * 0.5) * 0.02 * ease;
       const hs = sm3("__head", P.head, kk);
-      _qYaw.setFromAxisAngle(_Y_AXIS, yawRef.current + hs.y);
-      _qPitch.setFromAxisAngle(_X_AXIS, pitchRef.current + bob + hs.x);
+      _qYaw.setFromAxisAngle(_Y_AXIS, yawRef.current + hs.y + attYaw + shakeYaw);
+      _qPitch.setFromAxisAngle(_X_AXIS, pitchRef.current + bob + hs.x + attPitch + pout);
       _qRoll.setFromAxisAngle(_Z_AXIS, idleRotZ * 0.6 + hs.z);
       if (base) head.quaternion.copy(base).multiply(_qYaw).multiply(_qPitch).multiply(_qRoll);
       else head.quaternion.identity().multiply(_qYaw).multiply(_qPitch).multiply(_qRoll);
+      // lacak posisi kepala buat deteksi klik (proyeksi ke layar di CharBackdrop)
+      head.getWorldPosition(_vHead);
+      headTrack.x = _vHead.x;
+      headTrack.y = _vHead.y;
+      headTrack.z = _vHead.z;
+      headTrack.cam = camera;
+      headTrack.valid = true;
+    } else {
+      headTrack.valid = false;
     }
 
     // ---- wajah dari panel (smoothing biar halus) ----
@@ -577,8 +632,8 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     const blinkPhase = t % 6.5;
     const autoBlink = F.auto === false ? 0 : (blinkPhase < 0.22 ? Math.sin((blinkPhase / 0.22) * Math.PI) : 0);
     const blink = Math.min(1, autoBlink + fs.blink);
-    _qEyeYaw.setFromAxisAngle(_Y_AXIS, yawRef.current * 0.45 + fs.ey);
-    _qEyePitch.setFromAxisAngle(_X_AXIS, pitchRef.current * 0.35 + fs.ex);
+    _qEyeYaw.setFromAxisAngle(_Y_AXIS, yawRef.current * 0.45 + fs.ey + attYaw * 0.6);
+    _qEyePitch.setFromAxisAngle(_X_AXIS, pitchRef.current * 0.35 + fs.ex + attPitch * 0.6);
     for (const eye of [faceRefs.current.leftEye, faceRefs.current.rightEye]) {
       if (!eye) continue;
       const base = restQuats.get(eye.name);
@@ -589,8 +644,13 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     const mouth = faceRefs.current.mouth;
     const mouthBase = mouth && restQuats.get(mouth.name);
     if (mouth && mouthBase) {
-      _qSmileDyn.setFromAxisAngle(_Z_AXIS, -0.12 * fs.smile);
+      // senyum ikut melebar dikit pas ada yang merhatiin kartunya
+      _qSmileDyn.setFromAxisAngle(_Z_AXIS, -0.12 * fs.smile * (1 + as.s * 0.15));
       mouth.quaternion.copy(mouthBase).multiply(_qSmileDyn);
+      // ngambek: mulut manyun (kebalikan senyum)
+      if (frown > 0) {
+        mouth.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, 0.3 * frown));
+      }
     }
   });
 
@@ -613,6 +673,7 @@ const _qTmp2 = new THREE.Quaternion();
 const _euler = new THREE.Euler();
 const _qAdd = new THREE.Quaternion();
 const _qSmileDyn = new THREE.Quaternion();
+const _vHead = new THREE.Vector3();
 const _qYaw = new THREE.Quaternion();
 const _qPitch = new THREE.Quaternion();
 const _qRoll = new THREE.Quaternion();

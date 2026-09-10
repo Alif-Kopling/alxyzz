@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { playlist, type Track } from "../lib/playlist";
+import { syncSfxSettings } from "../lib/sfx";
 
 function fmt(sec: number) {
   if (!Number.isFinite(sec) || sec < 0) return "0:00";
@@ -57,6 +58,11 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     el.volume = volume;
     el.muted = muted;
   }, [volume, muted]);
+
+  // SFX (portal, ngambek) ngikut setting mute/volume musik
+  useEffect(() => {
+    syncSfxSettings(muted, volume);
+  }, [muted, volume]);
 
   useEffect(() => {
     const el = audioRef.current;

@@ -11,6 +11,7 @@ import {
   PlugsConnected,
 } from "@phosphor-icons/react";
 import { moreRepos } from "../lib/github";
+import { setAttention } from "../lib/attention";
 
 const CharBackdrop = lazy(() =>
   import("./CharBackdrop").then((m) => ({ default: m.CharBackdrop })),
@@ -33,6 +34,14 @@ export function CapabilitiesPan() {
   const bar = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const progressRef = useRef(0);
+
+  // Furina nengok ke kartu yang di-hover (dibaca CharModel tiap frame)
+  const pointAttention = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    const dx = ((r.left + r.width / 2) / window.innerWidth) * 2 - 1;
+    setAttention(true, dx);
+  };
+  const clearAttention = () => setAttention(false);
 
   // Entry kartu: naik stagger sekali begitu section mau masuk.
   // Header sengaja STATIS (tidak dianimasikan) sesuai permintaan.
@@ -134,6 +143,9 @@ export function CapabilitiesPan() {
         {items.map((item) => (
           <article
             key={item.title}
+            onMouseEnter={(e) => pointAttention(e.currentTarget)}
+            onMouseMove={(e) => pointAttention(e.currentTarget)}
+            onMouseLeave={clearAttention}
             className="skill-card card-soft group w-[82vw] shrink-0 border border-white/40 bg-white/55 p-6 backdrop-blur-xl transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/55"
           >
             <item.icon
@@ -150,7 +162,12 @@ export function CapabilitiesPan() {
           </article>
         ))}
 
-        <article className="skill-card card-soft w-[82vw] shrink-0 border border-white/40 bg-white/55 p-6 backdrop-blur-xl transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/55">
+        <article
+          onMouseEnter={(e) => pointAttention(e.currentTarget)}
+          onMouseMove={(e) => pointAttention(e.currentTarget)}
+          onMouseLeave={clearAttention}
+          className="skill-card card-soft w-[82vw] shrink-0 border border-white/40 bg-white/55 p-6 backdrop-blur-xl transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-white/15 dark:bg-zinc-950/55"
+        >
           <h3 className="font-display text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             Repo lain
           </h3>
