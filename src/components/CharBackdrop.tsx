@@ -5,6 +5,7 @@ import { useReducedMotion } from "motion/react";
 import { CharModel } from "./CharModel";
 import { livePose, usePoseVersion } from "./charPose";
 import { FacePanel, PosePanel } from "./PosePanel";
+import { dimensionStore, isDimensionReady, useDimensionVersion } from "../lib/dimension";
 
 type Props = {
   progressRef: React.MutableRefObject<number>;
@@ -30,12 +31,22 @@ export function CharBackdrop({ progressRef }: Props) {
   }, []);
   // ikut re-render pas panel tuning digeser (kursi + boost dibaca live)
   usePoseVersion();
+  // ikut re-render pas portal menandai eager / 3D ready
+  useDimensionVersion();
+  const eager = dimensionStore.eager;
+  const warmed = isDimensionReady();
   const boost = livePose.current.boost ?? 1.3;
   // pivot titik dudukan (y≈-1.05) + turun 0.12 biar ujung topi tidak kepotong
   const boostY = -1.05 * (1 - boost) - 0.12;
 
-  // gate: hanya mount Canvas saat section dekat viewport (hemat chunk & GPU first paint)
+  // gate: hanya mount Canvas saat section dekat viewport (hemat chunk & GPU first paint).
+  // Portal bisa memaksa eager mount lebih awal (offscreen, di balik overlay)
+  // biar compile shader + frame pertama kelar sebelum zoom-out.
   useEffect(() => {
+    if (eager) {
+      setVisible(true);
+      return;
+    }
     const el = containerRef.current?.parentElement;
     if (!el) {
       setVisible(true);
@@ -49,7 +60,7 @@ export function CharBackdrop({ progressRef }: Props) {
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [eager]);
 
   // pause render saat section keluar viewport (CPU/GPU → 0).
   // Mount gate di atas cuma sekali; ini bolak-balik mengikuti scroll.
@@ -96,7 +107,7 @@ export function CharBackdrop({ progressRef }: Props) {
           // Ringan: DPR max 1, tanpa antialias (backdrop di balik kartu, beda visual minim),
           // GPU low-power. Render 0 saat section di luar viewport (lihat frameloop + inView).
           dpr={[0.8, 1]}
-          frameloop={inView ? "always" : "never"}
+          frameloop={inView || (eager && !warmed) ? "always" : "never"}
           gl={{ alpha: true, antialias: false, stencil: false, powerPreference: "low-power" }}
           camera={{ position: [0, 0.05, 3.7], fov: 32 }}
           style={{ background: "transparent" }}

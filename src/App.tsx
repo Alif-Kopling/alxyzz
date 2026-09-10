@@ -8,6 +8,7 @@ import { Hero } from "./components/Hero";
 import { ClientStrip } from "./components/ClientStrip";
 import { WorkStickyStack } from "./components/WorkStickyStack";
 import { ProjectSkillsBridge } from "./components/ProjectSkillsBridge";
+import { PortalTransition } from "./components/PortalTransition";
 import { CapabilitiesPan } from "./components/CapabilitiesPan";
 import { SmoothScroll, scrollToId } from "./components/SmoothScroll";
 import { Quote } from "./components/Quote";
@@ -44,6 +45,7 @@ function App() {
           <ClientStrip />
           <WorkStickyStack />
           <ProjectSkillsBridge />
+          <PortalTransition />
           <CapabilitiesPan />
           <Quote />
           <Process />

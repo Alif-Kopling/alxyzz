@@ -25,6 +25,16 @@ export function scrollToId(id: string) {
   }
 }
 
+/** Kunci scroll (dipakai checkpoint portal saat nunggu 3D ready). */
+export function lockScroll() {
+  lenis?.stop();
+}
+
+/** Lepas kunci scroll. */
+export function unlockScroll() {
+  lenis?.start();
+}
+
 /**
  * Scroll berat/pelan seluruh halaman (wheel + trackpad; touch HP tetap native).
  * - raf jalan di GSAP ticker (autoRaf mati) biar sinkron sama semua pin/scrub.
