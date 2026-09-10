@@ -6,6 +6,7 @@ import {
   savePose,
   touchPose,
   type Axis3,
+  type HandState,
 } from "./charPose";
 
 // Panel kontrol full-body Furina.
@@ -80,6 +81,57 @@ function usePanelForce() {
     touchPose();
     force();
   };
+}
+
+const FINGER_ORDER = [
+  { key: "thumb", label: "Jempol" },
+  { key: "index", label: "Telunjuk" },
+  { key: "middle", label: "Tengah" },
+  { key: "ring", label: "Manis" },
+  { key: "little", label: "Kelingking" },
+] as const;
+
+const FINGER_PRESETS: Array<{ label: string; v: HandState }> = [
+  { label: "Buka", v: { thumb: 0, index: 0, middle: 0, ring: 0, little: 0, spread: 0.8 } },
+  { label: "Genggam", v: { thumb: 1, index: 1, middle: 1, ring: 1, little: 1, spread: 0 } },
+  { label: "Peace", v: { thumb: 0.6, index: 0, middle: 0, ring: 1, little: 1, spread: 0.5 } },
+  { label: "Tunjuk", v: { thumb: 0.8, index: 0, middle: 1, ring: 1, little: 1, spread: 0.2 } },
+  { label: "Jempol", v: { thumb: 0.1, index: 1, middle: 1, ring: 1, little: 1, spread: 0.3 } },
+];
+
+function HandGroup(props: {
+  title: string;
+  value: HandState;
+  def: HandState;
+  onChange: (v: HandState) => void;
+}) {
+  const { title, value, def, onChange } = props;
+  return (
+    <details className="rounded border border-white/10 px-1.5 py-1">
+      <summary className="cursor-pointer font-semibold text-zinc-100">{title}</summary>
+      <div className="mt-1 grid gap-1">
+        {FINGER_ORDER.map((f) => (
+          <Row
+            key={f.key}
+            label={f.label}
+            value={value[f.key]}
+            def={def[f.key]}
+            min={-1}
+            max={2}
+            onChange={(v) => onChange({ ...value, [f.key]: v })}
+          />
+        ))}
+        <Row
+          label="Mekar"
+          value={value.spread}
+          def={def.spread}
+          min={-1}
+          max={1}
+          onChange={(v) => onChange({ ...value, spread: v })}
+        />
+      </div>
+    </details>
+  );
 }
 
 function PanelShell(props: {
@@ -190,6 +242,29 @@ export function PosePanel() {
           <Axes title="Paha Kanan" value={P.thighR} def={D.thighR} onChange={(v) => { P.thighR = v; commit(); }} />
           <Axes title="Lutut Kanan" value={P.kneeR} def={D.kneeR} onChange={(v) => { P.kneeR = v; commit(); }} />
           <Axes title="Kaki Kanan" value={P.ankleR} def={D.ankleR} min={-1} max={1} onChange={(v) => { P.ankleR = v; commit(); }} />
+          <details className="rounded border border-white/10 px-1.5 py-1">
+            <summary className="cursor-pointer font-semibold text-zinc-100">Jari Tangan</summary>
+            <div className="mt-1 grid gap-1">
+              <div className="flex flex-wrap gap-1">
+                {FINGER_PRESETS.map((p) => (
+                  <button
+                    key={p.label}
+                    type="button"
+                    onClick={() => {
+                      P.handL = { ...p.v };
+                      P.handR = { ...p.v };
+                      commit();
+                    }}
+                    className="rounded bg-white/15 px-2 py-0.5 font-semibold"
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              <HandGroup title="Jari Kiri" value={P.handL} def={D.handL} onChange={(v) => { P.handL = v; commit(); }} />
+              <HandGroup title="Jari Kanan" value={P.handR} def={D.handR} onChange={(v) => { P.handR = v; commit(); }} />
+            </div>
+          </details>
         </div>
 
         <div className="mt-2 grid gap-1.5">

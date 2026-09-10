@@ -51,6 +51,11 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     lHandTwist: THREE.Object3D | null;
     rHandTwist: THREE.Object3D | null;
   }>({ lShoulder: null, rShoulder: null, lArm: null, rArm: null, lElbow: null, rElbow: null, lWrist: null, rWrist: null, lArmTwist: null, rArmTwist: null, lHandTwist: null, rHandTwist: null });
+  // jari: 3 ruas x 5 jari x 2 tangan (Thumb0_L_064 ... LittleFinger3_R_0104)
+  const fingerRefs = useRef({
+    L: { thumb: [], index: [], middle: [], ring: [], little: [] },
+    R: { thumb: [], index: [], middle: [], ring: [], little: [] },
+  } as Record<"L" | "R", Record<string, THREE.Object3D[]>>);
 
   const gltf = useGLTF("/char.glb") as unknown as {
     scene: THREE.Group;
@@ -162,6 +167,31 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     }
     if (faceRefs.current.mouth && !restQuats.has(faceRefs.current.mouth.name)) {
       restQuats.set(faceRefs.current.mouth.name, faceRefs.current.mouth.quaternion.clone());
+    }
+    // kumpulin tulang jari + snapshot rest (selalu dari rest biar idempotent)
+    {
+      const F = fingerRefs.current;
+      const re = /^(Thumb[012]|IndexFinger[123]|MiddleFinger[123]|RingFinger[123]|LittleFinger[123])_([LR])_/;
+      const baseOf = (b: string) =>
+        b.startsWith("Thumb") ? "thumb" : b.startsWith("Index") ? "index" : b.startsWith("Middle") ? "middle" : b.startsWith("Ring") ? "ring" : "little";
+      let nL = 0;
+      let nR = 0;
+      scene.traverse((o) => {
+        const m = re.exec(o.name);
+        if (!m) return;
+        const isBone = o.isBone || o.type === "Bone";
+        if (!isBone) return;
+        const bone = o as THREE.Object3D;
+        const segDigits = m[1].replace(/\D/g, "");
+        const seg = Number(segDigits);
+        const idx = m[1].startsWith("Thumb") ? seg : seg - 1;
+        F[m[2] as "L" | "R"][baseOf(m[1])][idx] = bone;
+        if (!restQuats.has(bone.name)) restQuats.set(bone.name, bone.quaternion.clone());
+        if (m[2] === "L") nL += 1;
+        else nR += 1;
+      });
+      // eslint-disable-next-line no-console
+      console.info(`[CharModel] fingers L=${nL} R=${nR}`);
     }
     if (h) {
       if (!restQuats.has(h.name)) restQuats.set(h.name, h.quaternion.clone());
@@ -401,6 +431,51 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
     b.quaternion.multiply(_qAdd.setFromEuler(_euler));
   };
 
+  // smoothing skalar buat panel jari
+  const smoothNum = useRef<Record<string, number>>({});
+  const sm1 = (key: string, target: number, k: number) => {
+    const S = smoothNum.current;
+    const cur = S[key] ?? target;
+    const nx = cur + (target - cur) * k;
+    S[key] = nx;
+    return nx;
+  };
+
+  // curl per ruas (tebakan sumbu X; slider boleh negatif buat balikin arah),
+  // spread kipas antar jari (cuma ruas pangkal). Selalu dari rest → idempotent.
+  // Faktor digedein biar kepalan bisa nutup penuh, bukan setengah jalan.
+  const FINGER_CURL = [0.7, 1.0, 1.2];
+  const THUMB_CURL = [0.5, 0.8, 1.0];
+  const SPREAD_FAN: Record<string, number> = { thumb: 0.4, index: 0.3, middle: 0, ring: -0.3, little: -0.55 };
+
+  const applyFingers = (
+    side: "L" | "R",
+    H: { thumb: number; index: number; middle: number; ring: number; little: number; spread: number },
+    k: number | null,
+  ) => {
+    const F = fingerRefs.current[side];
+    const spread = k === null ? H.spread : sm1(`spread${side}`, H.spread, k);
+    for (const fname of ["thumb", "index", "middle", "ring", "little"] as const) {
+      const bones = F[fname];
+      if (!bones) continue;
+      const curlTarget = H[fname];
+      const curl = k === null ? curlTarget : sm1(`curl${side}${fname}`, curlTarget, k);
+      if (curl === 0 && spread === 0) continue;
+      bones.forEach((b, i) => {
+        if (!b) return;
+        const rest = restQuats.get(b.name);
+        if (!rest) return;
+        const f = fname === "thumb" ? (THUMB_CURL[i] ?? 0.5) : (FINGER_CURL[i] ?? 0.7);
+        _euler.set(curl * f, 0, 0);
+        const q = _qAdd.setFromEuler(_euler).clone();
+        if (i === 0 && spread !== 0) {
+          q.multiply(_qTmp.setFromAxisAngle(_Y_AXIS, spread * (SPREAD_FAN[fname] ?? 0)));
+        }
+        b.quaternion.copy(rest).multiply(q);
+      });
+    }
+  };
+
   // pasangan [bone, target-additive-dari-panel] — pose solved tetap jadi basis
   const additivePairs = () => {
     const P = livePose.current;
@@ -501,6 +576,8 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
           faceRefs.current.mouth.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, 0.3 * frown0));
         }
       }
+      applyFingers("L", P0.handL ?? { thumb: 0, index: 0, middle: 0, ring: 0, little: 0, spread: 0 }, null);
+      applyFingers("R", P0.handR ?? { thumb: 0, index: 0, middle: 0, ring: 0, little: 0, spread: 0 }, null);
       group.current.position.set(P0.group.x, P0.group.y, 0);
       group.current.scale.set(P0.group.scale, P0.group.scale, P0.group.scale);
       group.current.rotation.set(0, P0.group.yaw, 0);
@@ -652,6 +729,9 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
         mouth.quaternion.multiply(_qTmp.setFromAxisAngle(_Z_AXIS, 0.3 * frown));
       }
     }
+    // jari ngikut panel (smoothing biar halus)
+    applyFingers("L", P.handL, kk);
+    applyFingers("R", P.handR, kk);
   });
 
   // skala & posisi: duduk di kanan biar tidak ketutup kartu tengah, full-body kelihatan

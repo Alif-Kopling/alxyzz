@@ -21,6 +21,16 @@ export type FaceState = {
 
 export type ChairState = { x: number; y: number; z: number; yaw: number; scale: number };
 
+/** Kontrol jari per tangan: curl per jari + mekar. Negatif = arah sebaliknya. */
+export type HandState = {
+  thumb: number;
+  index: number;
+  middle: number;
+  ring: number;
+  little: number;
+  spread: number;
+};
+
 export type PoseState = {
   group: { x: number; y: number; yaw: number; scale: number };
   chest: Axis3;
@@ -38,6 +48,8 @@ export type PoseState = {
   thighR: Axis3;
   kneeR: Axis3;
   ankleR: Axis3;
+  handL: HandState;
+  handR: HandState;
   face: FaceState;
   chair: ChairState;
   /** boost ukuran bareng char+kursi (1.3 = +30%) */
@@ -65,6 +77,8 @@ export const defaultPose: PoseState = {
   thighR: { x: -0.05, y: 0.64, z: -0.13 },
   kneeR: { x: 0, y: 0, z: 0 },
   ankleR: { x: -0.6, y: -0.24, z: -1 },
+  handL: { thumb: 0, index: 0, middle: 0, ring: 0, little: 0, spread: 0 },
+  handR: { thumb: 0, index: 0, middle: 0, ring: 0, little: 0, spread: 0 },
   face: { eyeX: 0.02, eyeY: -0.01, blink: 0, smile: 2, auto: true },
   chair: { x: -0.03, y: -1.06, z: -0.1, yaw: 0.3, scale: 1.24 },
   boost: 1.15,
