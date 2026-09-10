@@ -50,7 +50,7 @@ export function Hero({ onContact }: { onContact: () => void }) {
   });
 
   return (
-    <section id="atas" className="relative isolate flex min-h-[100dvh] flex-col overflow-hidden">
+    <section id="atas" className="relative isolate flex min-h-[100dvh] flex-col overflow-hidden md:-mt-7 md:scroll-mt-7">
       <img
         src="/bg.png"
         alt=""
@@ -68,7 +68,7 @@ export function Hero({ onContact }: { onContact: () => void }) {
         className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_55%_at_70%_18%,rgb(255_138_61/0.22),transparent_42%),radial-gradient(ellipse_70%_50%_at_30%_10%,rgb(74_111_165/0.18),transparent_40%)]"
       />
 
-      <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-4 md:px-6 md:py-8 hero-safe">
+      <div className="relative mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 py-4 md:px-6 md:pb-8 md:pt-24 hero-safe">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
           <ul
             aria-label="Shortcut"
@@ -186,18 +186,26 @@ export function Hero({ onContact }: { onContact: () => void }) {
 
                 <div className="min-w-0 md:col-span-2 xl:col-span-1 xl:col-start-3 xl:row-start-2">
                   <div className="hidden grid-cols-2 gap-3 md:grid">
-                    {projects.slice(0, 2).map((p) => (
-                      <figure key={p.name} className="group overflow-hidden rounded-2xl">
-                        <img
-                          src={p.preview}
-                          alt={p.alt}
-                          width={400}
-                          height={400}
-                          loading="lazy"
-                          className="aspect-square w-full rounded-2xl object-cover transition duration-500 group-hover:scale-105"
-                        />
-                      </figure>
-                    ))}
+                    <figure className="group overflow-hidden rounded-2xl">
+                      <img
+                        src="/photo-hero-1-mini.gif"
+                        alt="Animasi mini hero"
+                        width={400}
+                        height={400}
+                        loading="eager"
+                        className="aspect-square w-full rounded-2xl object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    </figure>
+                    <figure className="group overflow-hidden rounded-2xl">
+                      <img
+                        src="/furina-photo-mini-2-hero.jpg"
+                        alt="Foto mini hero Furina"
+                        width={400}
+                        height={400}
+                        loading="eager"
+                        className="aspect-square w-full rounded-2xl object-cover transition duration-500 group-hover:scale-105"
+                      />
+                    </figure>
                   </div>
 
                   <PlayerCard />

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   BatteryCharging,
   Check,
@@ -59,7 +60,7 @@ function WifiPopover({ onClose }: { onClose: () => void }) {
       ref={ref}
       role="dialog"
       aria-label="Wi-Fi"
-      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-[0_20px_60px_rgb(0_0_0/0.6)] backdrop-blur-2xl sm:right-24 sm:w-72"
+      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 liquid-panel p-4 sm:right-24 sm:w-72"
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold tracking-wide text-zinc-400">Wi-Fi</p>
@@ -118,7 +119,7 @@ function DisplayPopover({ onClose }: { onClose: () => void }) {
       ref={ref}
       role="dialog"
       aria-label="Display"
-      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-[0_20px_60px_rgb(0_0_0/0.6)] backdrop-blur-2xl sm:right-16 sm:w-72"
+      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 liquid-panel p-4 sm:right-16 sm:w-72"
     >
       <p className="text-xs font-semibold tracking-wide text-zinc-400">Display</p>
       <div className="mt-3 flex items-center gap-3">
@@ -175,7 +176,7 @@ function BatteryPopover({ onClose }: { onClose: () => void }) {
       ref={ref}
       role="dialog"
       aria-label="Battery"
-      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-[0_20px_60px_rgb(0_0_0/0.6)] backdrop-blur-2xl sm:right-10 sm:w-72"
+      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 liquid-panel p-4 sm:right-10 sm:w-72"
     >
       <p className="text-xs font-semibold tracking-wide text-zinc-400">Battery</p>
       <div className="mt-3 flex items-center gap-3">
@@ -230,7 +231,7 @@ function VolumePopover({ onClose }: { onClose: () => void }) {
       ref={ref}
       role="dialog"
       aria-label="Kontrol volume"
-      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-[0_20px_60px_rgb(0_0_0/0.6)] backdrop-blur-2xl sm:w-72"
+      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-72 liquid-panel p-4 sm:w-72"
     >
       <p className="text-xs font-semibold tracking-wide text-zinc-400">Sound</p>
       <div className="mt-3 flex items-center gap-3">
@@ -284,7 +285,7 @@ function MusicPopover({ onClose }: { onClose: () => void }) {
       ref={ref}
       role="dialog"
       aria-label="Pemutar musik"
-      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-80 rounded-2xl border border-white/10 bg-zinc-900/90 p-4 shadow-[0_20px_60px_rgb(0_0_0/0.6)] backdrop-blur-2xl sm:w-80"
+      className="popover-safe fixed top-8 right-2 z-[70] w-[calc(100vw-16px)] max-w-80 liquid-panel p-4 sm:w-80"
     >
       <div className="flex items-center gap-3">
         <span className="rounded-xl bg-white p-2.5 text-zinc-900">
@@ -364,6 +365,11 @@ function MusicPopover({ onClose }: { onClose: () => void }) {
 export function MenuBar({ onContact }: { onContact: () => void }) {
   const [open, setOpen] = useState(false);
   const [popover, setPopover] = useState<"wifi" | "display" | "battery" | "volume" | "music" | null>(null);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+  const closePopover = () => setPopover(null);
   const now = useNow();
   const time = now
     .toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", hour12: false })
@@ -371,7 +377,9 @@ export function MenuBar({ onContact }: { onContact: () => void }) {
 
   return (
     <header
-      className="liquid-nav sticky top-0 hidden text-zinc-800 md:block dark:text-zinc-200"
+      // Fixed overlay (bukan sticky): gambar hero jalan ke belakang navbar,
+      // jadi kaca navbar mantulin bg yang terang kayak window hero.
+      className="liquid-nav fixed inset-x-0 top-0 hidden text-zinc-800 md:block dark:text-zinc-200"
       style={{ zIndex: Z.menubar } as React.CSSProperties}
     >
       <nav className="mx-auto flex h-7 max-w-[1600px] items-center justify-between gap-2 px-2 text-[12px] leading-none">
@@ -486,11 +494,14 @@ export function MenuBar({ onContact }: { onContact: () => void }) {
           <span className="font-mono text-[12px] tabular-nums text-zinc-900 dark:text-white">{time}</span>
         </div>
       </nav>
-      {popover === "wifi" && <WifiPopover onClose={() => setPopover(null)} />}
-      {popover === "display" && <DisplayPopover onClose={() => setPopover(null)} />}
-      {popover === "battery" && <BatteryPopover onClose={() => setPopover(null)} />}
-      {popover === "volume" && <VolumePopover onClose={() => setPopover(null)} />}
-      {popover === "music" && <MusicPopover onClose={() => setPopover(null)} />}
+      {/* Portal ke body: lepas dari header yang punya backdrop-filter (containing
+          block jebakan buat fixed). Dijamin ngambang di atas bg + konten, z-70 di
+          atas grain (60), di bawah preloader (100). */}
+      {mounted && popover === "wifi" && createPortal(<WifiPopover onClose={closePopover} />, document.body)}
+      {mounted && popover === "display" && createPortal(<DisplayPopover onClose={closePopover} />, document.body)}
+      {mounted && popover === "battery" && createPortal(<BatteryPopover onClose={closePopover} />, document.body)}
+      {mounted && popover === "volume" && createPortal(<VolumePopover onClose={closePopover} />, document.body)}
+      {mounted && popover === "music" && createPortal(<MusicPopover onClose={closePopover} />, document.body)}
 
       {open && (
         <div

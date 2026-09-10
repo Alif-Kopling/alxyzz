@@ -35,8 +35,8 @@ export function Preloader({ onEnter }: Props) {
       aria-live="polite"
       aria-label="Loading portfolio"
       className="fixed inset-0 z-[100] flex items-center justify-center bg-black"
-      initial={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeOut" } }}
+      initial={{ opacity: 1, y: 0 }}
+      exit={{ y: "-100%", transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }}
     >
       <AnimatePresence mode="wait">
         {stage === "loading" ? (
@@ -78,7 +78,9 @@ export function Preloader({ onEnter }: Props) {
             className="absolute inset-0 overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1, transition: { duration: 0.4 } }}
-            exit={{ opacity: 0, transition: { duration: 0.35 } }}
+            // Exit kilat 0.2s: lapisan mahal (backdrop-blur full + gradient + konten)
+            // lenyap duluan, lalu root geser 0.8s tinggal bawa layer murah (compositor-only).
+            exit={{ opacity: 0, transition: { duration: 0.2, ease: "easeOut" } }}
           >
             {/* bg + kaca full selayar */}
             <img
