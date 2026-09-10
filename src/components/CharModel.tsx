@@ -10,7 +10,8 @@ type Props = {
   reduced?: boolean;
 };
 
-const BASE_SCALE = 1.15;
+const BASE_SCALE = 1.55;
+const MODEL_Y = -1.8;
 
 export function CharModel({ progressRef, mouseRef, reduced }: Props) {
   const group = useRef<THREE.Group>(null);
@@ -309,7 +310,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
         const tgt = poseTargets.current.get(b.name);
         if (tgt) b.quaternion.copy(tgt);
       }
-      group.current.position.y = -0.9;
+      group.current.position.y = MODEL_Y;
       group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
       group.current.rotation.set(0, 0, 0);
       return;
@@ -321,7 +322,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
 
     // kaki napak: group dikunci, tidak ada idleY / scale breathing / sway badan
     // (sebelumnya seluruh tubuh naik-turun → kelihatan ngambang)
-    group.current.position.y = -0.9;
+    group.current.position.y = MODEL_Y;
     group.current.scale.set(BASE_SCALE, BASE_SCALE, BASE_SCALE);
     const idleRotZ = 0; // kepala roll dimatikan biar tidak goyang
 
@@ -399,7 +400,7 @@ export function CharModel({ progressRef, mouseRef, reduced }: Props) {
 
   // skala & posisi: patung di tengah belakang, kaki di bawah horizon
   return (
-    <group ref={group} position={[0, -0.9, 0]} scale={BASE_SCALE}>
+    <group ref={group} position={[0, MODEL_Y, 0]} scale={BASE_SCALE}>
       <primitive object={gltf.scene} />
     </group>
   );
