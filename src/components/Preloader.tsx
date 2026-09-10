@@ -82,12 +82,12 @@ export function Preloader({ onEnter }: Props) {
           >
             <div className="flex justify-center text-white">
               {reduce ? (
-                <p className="font-display text-5xl font-semibold tracking-tighter">hello</p>
+                <p className="font-display text-6xl font-semibold tracking-tighter sm:text-7xl">hello</p>
               ) : (
                 <AppleHelloEnglishEffect
                   speed={1.1}
                   onAnimationComplete={() => setAnimDone(true)}
-                  className="h-16 text-white sm:h-20"
+                  className="h-24 text-white sm:h-32"
                 />
               )}
             </div>
@@ -97,11 +97,10 @@ export function Preloader({ onEnter }: Props) {
                 <motion.button
                   type="button"
                   onClick={onEnter}
-                  initial={reduce ? false : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                  autoFocus
-                  className="text-sm tracking-wide text-white/60 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                  initial={reduce ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                  className="rounded-full px-5 py-2 text-[11px] font-medium tracking-widest text-white/50 uppercase transition-all duration-300 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white active:scale-95 sm:px-6 sm:py-2.5 sm:text-xs"
                 >
                   click here to enter
                 </motion.button>
