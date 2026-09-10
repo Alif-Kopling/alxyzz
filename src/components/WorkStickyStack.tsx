@@ -138,7 +138,7 @@ export function WorkStickyStack() {
                   width={1200}
                   height={800}
                   loading="lazy"
-                  className="card-soft aspect-[3/2] w-full object-cover"
+                  className="card-soft aspect-[1885/966] w-full object-cover"
                 />
               </div>
             </article>
