@@ -1,7 +1,7 @@
 import {
   BracketsCurly,
   EnvelopeSimple,
-  FlowArrow,
+  GraduationCap,
   FolderSimple,
   GithubLogo,
   Trash,
@@ -15,7 +15,7 @@ import { scrollToId } from "./SmoothScroll";
 const items = [
   { label: "Projects", href: "#projects", icon: FolderSimple, tile: "bg-gradient-to-b from-[#3aa7ff] to-[#0a64ff]" },
   { label: "Skills", href: "#skills", icon: BracketsCurly, tile: "bg-gradient-to-b from-[#ffb340] to-[#ff7a00]" },
-  { label: "Workflow", href: "#workflow", icon: FlowArrow, tile: "bg-gradient-to-b from-[#d07bff] to-[#8e24ff]" },
+  { label: "Story", href: "#story", icon: GraduationCap, tile: "bg-gradient-to-b from-[#d07bff] to-[#8e24ff]" },
   { label: "Contact", href: "#contact", icon: EnvelopeSimple, tile: "bg-gradient-to-b from-[#3ddc74] to-[#0a9e4b]" },
 ];
 

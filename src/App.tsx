@@ -12,7 +12,7 @@ import { PortalTransition } from "./components/PortalTransition";
 import { CapabilitiesPan } from "./components/CapabilitiesPan";
 import { SmoothScroll, scrollToId } from "./components/SmoothScroll";
 import { Quote } from "./components/Quote";
-import { Process } from "./components/Process";
+import { Story } from "./components/Story";
 import { Contact } from "./components/Contact";
 
 function scrollToContact() {
@@ -48,7 +48,7 @@ function App() {
           <PortalTransition />
           <CapabilitiesPan />
           <Quote />
-          <Process />
+          <Story />
           <Contact />
         </main>
       </div>

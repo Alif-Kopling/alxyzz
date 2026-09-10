@@ -27,7 +27,7 @@ import { scrollToId } from "./SmoothScroll";
 const links = [
   { label: "Projects", href: "#projects" },
   { label: "Skills", href: "#skills" },
-  { label: "Workflow", href: "#workflow" },
+  { label: "Story", href: "#story" },
   { label: "Contact", href: "#contact" },
 ];
 
@@ -196,11 +196,11 @@ function BatteryPopover({ onClose }: { onClose: () => void }) {
         type="button"
         onClick={() => {
           onClose();
-          scrollTo("workflow");
+          scrollTo("story");
         }}
         className="mt-3 w-full rounded-full bg-white/10 py-2 text-xs font-semibold text-white hover:bg-white/15"
       >
-        Buka Workflow
+        Buka Story
       </button>
     </div>
   );
