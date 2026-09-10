@@ -1,5 +1,8 @@
+import { useCallback, useState } from "react";
+import { AnimatePresence } from "motion/react";
 import { AudioProvider } from "./context/AudioContext";
 import { MenuBar } from "./components/MenuBar";
+import { Preloader } from "./components/Preloader";
 import { Hero } from "./components/Hero";
 import { ClientStrip } from "./components/ClientStrip";
 import { WorkStickyStack } from "./components/WorkStickyStack";
@@ -13,8 +16,17 @@ function scrollToContact() {
 }
 
 function App() {
+  const [entered, setEntered] = useState(false);
+  const handleEnter = useCallback(() => {
+    setEntered(true);
+    // pastikan mulai dari atas saat masuk halaman utama
+    requestAnimationFrame(() => window.scrollTo(0, 0));
+  }, []);
+
   return (
     <AudioProvider>
+      <AnimatePresence>{entered ? null : <Preloader onEnter={handleEnter} />}</AnimatePresence>
+      {entered ? (
       <div className="min-h-[100dvh] bg-[#fafafa] text-zinc-950 antialiased dark:bg-[#09090b] dark:text-zinc-50">
         <div className="grain-layer" aria-hidden="true" />
         <MenuBar onContact={scrollToContact} />
@@ -30,6 +42,7 @@ function App() {
           <Contact />
         </main>
       </div>
+      ) : null}
     </AudioProvider>
   );
 }

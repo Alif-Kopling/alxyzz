@@ -24,11 +24,14 @@ function scrollTop() {
 
 export function Dock() {
   return (
+    // Tanpa justify-center: ul pakai m-auto (safe-centering). justify-center + konten
+    // overflow = kepotong kiri + area scroll melebar ke halaman. m-auto: muat = tengah,
+    // sempit = rata kiri dan scroll internal saja.
     <nav
       aria-label="Dock navigasi"
-      className="dock-safe mt-auto flex justify-center overflow-x-auto px-2 pt-3 [scrollbar-width:none] sm:pt-4 md:mt-6 [&::-webkit-scrollbar]:hidden"
+      className="dock-safe mt-auto flex w-full max-w-full overflow-x-auto px-2 pt-3 [scrollbar-width:none] sm:pt-4 md:mt-6 [&::-webkit-scrollbar]:hidden"
     >
-      <ul className="liquid-dock flex shrink-0 items-end gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
+      <ul className="liquid-dock m-auto flex shrink-0 items-end gap-1.5 px-2.5 py-2 sm:gap-2 sm:px-3 sm:py-2.5">
         {items.map((item) => (
           <li key={item.href} className="group relative">
             <a

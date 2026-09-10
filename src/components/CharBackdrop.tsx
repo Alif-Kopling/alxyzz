@@ -11,6 +11,7 @@ export function CharBackdrop({ progressRef }: Props) {
   const reduce = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
+  const [inView, setInView] = useState(true);
   const mouseRef = useRef({ x: 0, y: 0 });
 
   // gate: hanya mount Canvas saat section dekat viewport (hemat chunk & GPU first paint)
@@ -29,6 +30,22 @@ export function CharBackdrop({ progressRef }: Props) {
     io.observe(el);
     return () => io.disconnect();
   }, []);
+
+  // pause render saat section keluar viewport (CPU/GPU → 0).
+  // Mount gate di atas cuma sekali; ini bolak-balik mengikuti scroll.
+  useEffect(() => {
+    if (!visible) return;
+    const el = containerRef.current?.parentElement;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        setInView(entries[0]?.isIntersecting ?? true);
+      },
+      { rootMargin: "100px 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [visible]);
 
   // mouse follow (normalized -1..1) — pointer-events-none jadi listen di parent section
   useEffect(() => {
@@ -56,8 +73,11 @@ export function CharBackdrop({ progressRef }: Props) {
     >
       {visible && (
         <Canvas
-          dpr={[1, 1.5]}
-          gl={{ alpha: true, antialias: true }}
+          // dpr 1: potong pixel fullscreen s/d 2.25x vs 1.5 (sumber utama CPU/GPU).
+          // Model cuma backdrop di balik kartu, beda visualnya minim.
+          dpr={1}
+          frameloop={inView ? "always" : "never"}
+          gl={{ alpha: true, antialias: true, stencil: false, powerPreference: "high-performance" }}
           camera={{ position: [0, 0.35, 3.2], fov: 34 }}
           style={{ background: "transparent" }}
           onCreated={({ gl }) => {

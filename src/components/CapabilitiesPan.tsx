@@ -58,6 +58,16 @@ export function CapabilitiesPan() {
     return () => ctx.revert();
   }, [reduce]);
 
+  // Ukur ulang pin setelah font + load kelar: lebar track yang diukur terlalu
+  // awal (font swap) bisa sisa 1px → pin-spacer melebar → scrollbar samping.
+  useEffect(() => {
+    if (reduce) return;
+    const refresh = () => ScrollTrigger.refresh();
+    document.fonts?.ready.then(refresh).catch(() => undefined);
+    window.addEventListener("load", refresh);
+    return () => window.removeEventListener("load", refresh);
+  }, [reduce]);
+
   return (
     <section
       id="skills"
