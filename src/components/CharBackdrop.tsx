@@ -25,7 +25,7 @@ export function CharBackdrop({ progressRef }: Props) {
       (entries) => {
         if (entries[0]?.isIntersecting) setVisible(true);
       },
-      { rootMargin: "800px 0px" },
+      { rootMargin: "500px 0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -73,22 +73,20 @@ export function CharBackdrop({ progressRef }: Props) {
     >
       {visible && (
         <Canvas
-          // dpr 1: potong pixel fullscreen s/d 2.25x vs 1.5 (sumber utama CPU/GPU).
-          // Model cuma backdrop di balik kartu, beda visualnya minim.
-          dpr={1}
+          // Ringan: DPR max 1, tanpa antialias (backdrop di balik kartu, beda visual minim),
+          // GPU low-power. Render 0 saat section di luar viewport (lihat frameloop + inView).
+          dpr={[0.8, 1]}
           frameloop={inView ? "always" : "never"}
-          gl={{ alpha: true, antialias: true, stencil: false, powerPreference: "high-performance" }}
+          gl={{ alpha: true, antialias: false, stencil: false, powerPreference: "low-power" }}
           camera={{ position: [0, 0.35, 3.2], fov: 34 }}
           style={{ background: "transparent" }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
           }}
         >
-          {/* lights: hemat, tanpa HDRI download */}
+          {/* lights: 2 saja (hemat shader) + tanpa HDRI download */}
           <hemisphereLight intensity={0.9} args={[0xfff6e5, 0x1a1025, 0.9]} />
-          <directionalLight position={[2.5, 4, 2]} intensity={1.15} />
-          <directionalLight position={[-2, 1.5, 2]} intensity={0.45} />
-          <ambientLight intensity={0.35} />
+          <directionalLight position={[2.5, 4, 2]} intensity={1.35} />
 
           <Suspense fallback={null}>
             <CharModel progressRef={progressRef} mouseRef={mouseRef} reduced={reduce ?? false} />

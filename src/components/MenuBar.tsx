@@ -22,6 +22,7 @@ import { Z } from "../lib/zIndex";
 import { useNow } from "../hooks/useNow";
 import { ThemeButton } from "./ThemeButton";
 import { useAudio } from "../context/AudioContext";
+import { scrollToId } from "./SmoothScroll";
 
 const links = [
   { label: "Projects", href: "#projects" },
@@ -31,7 +32,7 @@ const links = [
 ];
 
 function scrollTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  scrollToId(id);
 }
 
 function useCloseOnOutside(ref: React.RefObject<HTMLDivElement | null>, onClose: () => void) {

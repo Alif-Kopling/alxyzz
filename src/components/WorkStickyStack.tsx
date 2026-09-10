@@ -36,7 +36,7 @@ export function WorkStickyStack() {
               trigger: cards[i + 1],
               start: "top bottom",
               end: "top top",
-              scrub: true,
+              scrub: 0.6,
             },
           });
         });
@@ -65,10 +65,33 @@ export function WorkStickyStack() {
               trigger: cards[i + 1],
               start: "top bottom",
               end: "top top+=56",
-              scrub: true,
+              scrub: 0.6,
             },
           });
         });
+      }, ref);
+      return () => ctx.revert();
+    });
+    // Outro sinematik (halus, stack TETAP ada): kartu project terakhir
+    // menyusut dikit saat bridge Skills masuk. Tanpa fade jauh biar stack tetap jelas.
+    mm.add("(min-width: 0px)", () => {
+      const ctx = gsap.context(() => {
+        const cards = gsap.utils.toArray<HTMLElement>(".stack-card");
+        const last = cards[cards.length - 1];
+        if (last?.querySelector("article") && document.querySelector("#skills-bridge")) {
+          gsap.to(last.querySelector("article"), {
+            scale: 0.96,
+            y: -40,
+            opacity: 0.85,
+            ease: "none",
+            scrollTrigger: {
+              trigger: "#skills-bridge",
+              start: "top bottom",
+              end: "top 35%",
+              scrub: 0.6,
+            },
+          });
+        }
       }, ref);
       return () => ctx.revert();
     });
@@ -138,6 +161,7 @@ export function WorkStickyStack() {
                   width={1200}
                   height={800}
                   loading="lazy"
+                  decoding="async"
                   className="card-soft aspect-[1885/966] w-full object-cover"
                 />
               </div>

@@ -221,6 +221,28 @@ body {
   }
 }
 
+/* Bridge Project -> Skills: outline raksasa + marquee */
+.bridge-giant > span:first-child {
+  -webkit-text-stroke: 1.5px rgb(0 0 0 / 0.22);
+}
+.dark .bridge-giant > span:first-child {
+  -webkit-text-stroke: 1.5px rgb(255 255 255 / 0.28);
+}
+
+@keyframes bridge-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.bridge-marquee-inner {
+  animation: bridge-marquee 18s linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

@@ -7,6 +7,7 @@ import {
   Trash,
 } from "@phosphor-icons/react";
 import { profile } from "../lib/github";
+import { scrollToId } from "./SmoothScroll";
 
 // Dock khusus hero pertama, gaya macOS: bilah gelap tembus pandang,
 // ikon berupa tile warna, membesar saat hover. Statis di dalam hero.
@@ -19,7 +20,7 @@ const items = [
 ];
 
 function scrollTop() {
-  document.getElementById("atas")?.scrollIntoView({ behavior: "smooth" });
+  scrollToId("atas");
 }
 
 export function Dock() {

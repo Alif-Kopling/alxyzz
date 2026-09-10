@@ -30,8 +30,34 @@ const items = [
 export function CapabilitiesPan() {
   const wrap = useRef<HTMLElement>(null);
   const track = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
   const progressRef = useRef(0);
+
+  // Entry kartu: naik stagger sekali begitu section mau masuk.
+  // Header sengaja STATIS (tidak dianimasikan) sesuai permintaan.
+  useEffect(() => {
+    if (reduce || !wrap.current) return;
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        ".skill-card",
+        { y: 60, opacity: 0 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.7,
+          stagger: 0.06,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: wrap.current,
+            start: "top 55%",
+            toggleActions: "play none none reverse",
+          },
+        },
+      );
+    }, wrap);
+    return () => ctx.revert();
+  }, [reduce]);
 
   useEffect(() => {
     if (reduce || !wrap.current || !track.current) return;
@@ -48,12 +74,15 @@ export function CapabilitiesPan() {
           end: () => `+=${distance()}`,
           pin: true,
           scrub: 1,
+          anticipatePin: 1,
           invalidateOnRefresh: true,
           onUpdate: (self) => {
             progressRef.current = self.progress;
+            if (bar.current) bar.current.style.transform = `scaleX(${self.progress})`;
           },
         },
       });
+      // Header STATIS: tidak ada parallax, tetap stay di layar selama pin.
     }, wrap);
     return () => ctx.revert();
   }, [reduce]);
@@ -72,14 +101,25 @@ export function CapabilitiesPan() {
     <section
       id="skills"
       ref={wrap}
-      className="relative scroll-mt-20 overflow-hidden border-y border-zinc-200 bg-zinc-100/60 dark:border-zinc-800 dark:bg-zinc-900/40"
+      className="relative z-20 -mt-[5vh] overflow-hidden rounded-t-[1.75rem] border-y border-zinc-200 bg-zinc-100/60 shadow-[0_-24px_80px_rgb(0_0_0/0.18)] md:rounded-t-[2.5rem] dark:border-zinc-800 dark:bg-zinc-900/40 dark:shadow-[0_-24px_80px_rgb(0_0_0/0.55)]"
     >
+      {/* progress horizontal: penuh saat track habis digeser */}
+      <div className="absolute inset-x-0 top-0 z-20 h-[3px] bg-transparent">
+        <div
+          ref={bar}
+          className="h-full w-full origin-left bg-[#2440ff] dark:bg-[#8ea2ff]"
+          style={{ transform: "scaleX(0)" }}
+        />
+      </div>
       <Suspense fallback={null}>
         <CharBackdrop progressRef={progressRef} />
       </Suspense>
-      <div className="relative z-10 mx-auto max-w-7xl px-4 pt-12 md:px-6 md:pt-16">
+      <div className="relative z-10 w-full px-4 pt-12 md:px-6 md:pt-16">
         <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-zinc-500 dark:text-zinc-400">
-          Skills
+          <span className="mr-2 inline-block rounded-full bg-[#2440ff] px-2 py-0.5 text-[10px] font-semibold text-white dark:bg-[#8ea2ff] dark:text-zinc-950">
+            02
+          </span>
+          Skills — lanjut dari project
         </p>
         <h2 className="font-display mt-3 max-w-[22ch] text-3xl font-semibold tracking-tighter text-zinc-950 md:text-4xl dark:text-zinc-50">
           Stack frontend untuk web modern
@@ -88,14 +128,18 @@ export function CapabilitiesPan() {
 
       <div
         ref={track}
-        className="relative z-10 flex h-[100dvh] items-center gap-4 px-4 md:gap-5 md:px-6"
+        className="relative z-10 flex h-[100dvh] items-center gap-4 px-4 will-change-transform md:gap-5 md:px-6"
       >
         {items.map((item) => (
           <article
             key={item.title}
-            className="card-soft w-[82vw] shrink-0 border border-zinc-200 bg-white p-6 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-zinc-800 dark:bg-zinc-950"
+            className="skill-card card-soft group w-[82vw] shrink-0 border border-zinc-200 bg-white p-6 transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-zinc-800 dark:bg-zinc-950"
           >
-            <item.icon size={26} weight="duotone" className="text-[#2440ff] dark:text-[#8ea2ff]" />
+            <item.icon
+              size={26}
+              weight="duotone"
+              className="text-[#2440ff] transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 dark:text-[#8ea2ff]"
+            />
             <h3 className="font-display mt-4 text-lg font-semibold tracking-tight text-zinc-950 md:mt-5 md:text-xl dark:text-zinc-50">
               {item.title}
             </h3>
@@ -105,7 +149,7 @@ export function CapabilitiesPan() {
           </article>
         ))}
 
-        <article className="card-soft w-[82vw] shrink-0 border border-zinc-200 bg-white p-6 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-zinc-800 dark:bg-zinc-950">
+        <article className="skill-card card-soft w-[82vw] shrink-0 border border-zinc-200 bg-white p-6 transition-transform duration-300 hover:-translate-y-2 sm:w-[46vw] md:p-7 lg:w-[30vw] dark:border-zinc-800 dark:bg-zinc-950">
           <h3 className="font-display text-xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             Repo lain
           </h3>
