@@ -79,6 +79,46 @@ body {
   }
 }
 
+/* Kartu info: diam flat total, cuma hover yang ngangkat. Sengaja tanpa
+   fase :active dan tanpa cursor-pointer — itu garis jujurnya lawan tombol
+   yang berbayang permanen. */
+.lift-hover {
+  transition:
+    transform 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+@media (hover: hover) {
+  .lift-hover:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 rgb(22 19 14 / 0.9);
+  }
+}
+
+/* Chip link sekunder (sel merah Berkas lain): press mini. Lebih kecil +
+   lebih kalem dari .btn-3d karena hierarkinya di bawah tombol primer. */
+.chip-press {
+  transition:
+    transform 160ms ease-out,
+    box-shadow 160ms ease-out,
+    background-color 160ms ease-out;
+}
+@media (hover: hover) {
+  .chip-press:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 3px 3px 0 rgb(22 19 14 / 0.85);
+    background-color: rgb(255 255 255 / 0.14);
+  }
+  .chip-press:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0 0 0 rgb(22 19 14 / 0.85);
+  }
+}
+@media (hover: none) {
+  .chip-press:active {
+    transform: translate(1px, 1px);
+  }
+}
+
 .card-dossier {
   border-radius: 2px;
 }

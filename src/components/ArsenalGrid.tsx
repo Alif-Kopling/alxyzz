@@ -32,7 +32,7 @@ export function ArsenalGrid() {
 
       <div className="mt-10 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Reveal className="sm:col-span-2 lg:row-span-2" delay={0}>
-          <article className="card-dossier flex h-full flex-col bg-ink p-6 text-paper md:p-8">
+          <article className="card-dossier lift-hover flex h-full flex-col bg-ink p-6 text-paper md:p-8">
             <svg
               viewBox="0 0 24 24"
               role="img"
@@ -58,7 +58,7 @@ export function ArsenalGrid() {
 
         {skills.map((s, i) => (
           <Reveal key={s.title} delay={(i % 3) * 0.06}>
-            <article className="card-dossier group h-full border border-ink/20 bg-paper-card p-6 transition-transform duration-300 hover:-translate-y-1">
+            <article className="card-dossier group lift-hover h-full border border-ink/20 bg-paper-card p-6">
               <s.icon size={26} weight="duotone" className="text-stamp" />
               <h3 className="font-display mt-4 text-lg font-extrabold tracking-tight text-ink uppercase">
                 {s.title}
@@ -69,7 +69,7 @@ export function ArsenalGrid() {
         ))}
 
         <Reveal className="sm:col-span-2" delay={0.06}>
-          <article className="card-dossier h-full bg-stamp p-6 text-white md:p-7">
+          <article className="card-dossier paper-raised h-full bg-stamp p-6 text-white md:p-7">
             <h3 className="font-display text-lg font-extrabold tracking-tight uppercase">
               Berkas lain
             </h3>
@@ -81,7 +81,7 @@ export function ArsenalGrid() {
                     target="_blank"
                     rel="noreferrer"
                     title={r.desc}
-                    className="block border border-white/50 px-4 py-3 font-mono text-sm font-bold break-all hover:bg-white/10"
+                    className="chip-press block border border-white/50 px-4 py-3 font-mono text-sm font-bold break-all"
                   >
                     {r.name}
                   </a>
