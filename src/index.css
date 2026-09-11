@@ -145,6 +145,9 @@ body {
 .map-pin.unknown .pin-dot {
   stroke-dasharray: 4 3;
 }
+.map-idle .marker-ring {
+  animation-play-state: paused;
+}
 .marker-ring {
   transform-box: fill-box;
   transform-origin: center;

@@ -210,7 +210,7 @@ export function TrailTimeline() {
     // Fase 1 (0 → ROUTE_END): rute digambar. Fase 2: kamera zoom ke titik MISSING.
     const ROUTE_END = 0.55;
     const ZOOM_END = 0.8;
-    const ZOOM_MAX = 3.0;
+    const ZOOM_MAX = 1.4;
     function draw(p: number) {
       const cl = Math.max(0, Math.min(1, p));
       const rp = Math.min(1, cl / ROUTE_END);
@@ -251,12 +251,22 @@ export function TrailTimeline() {
       });
     }
     draw(0);
+    // Jeda ping marker saat kartu di luar layar — potong repaint abadi.
+    let io: IntersectionObserver | null = null;
+    const cardEl = exitRef.current;
+    if (cardEl && "IntersectionObserver" in window) {
+      io = new IntersectionObserver(function (entries) {
+        const vis = entries.length > 0 && entries[0].isIntersecting;
+        cardEl.classList.toggle("map-idle", !vis);
+      });
+      io.observe(cardEl);
+    }
     const st = ScrollTrigger.create({
       trigger: pinRef.current,
       start: "top top+=84",
       end: "+=400%",
       pin: true,
-      scrub: 0.6,
+      scrub: 0.3,
       anticipatePin: 1,
       invalidateOnRefresh: true,
       onUpdate: function (self) {
@@ -265,6 +275,7 @@ export function TrailTimeline() {
     });
     return function () {
       st.kill();
+      if (io) io.disconnect();
     };
   }, [reduce]);
 
