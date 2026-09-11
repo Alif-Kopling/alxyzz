@@ -82,7 +82,7 @@ export function WantedLoader({ onDone }: WantedLoaderProps) {
               aria-hidden="true"
             >
               <motion.div
-                className="h-full w-full origin-left bg-ink"
+                className="h-full w-full origin-left bg-stamp"
                 style={{ scaleX: reduce ? 1 : barScale }}
               />
             </div>

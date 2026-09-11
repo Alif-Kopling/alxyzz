@@ -1,13 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import type { FormEvent } from "react";
-import { gsap } from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useReducedMotion } from "motion/react";
 import { GithubLogo, PaperPlaneTilt } from "@phosphor-icons/react";
 import { Reveal } from "./Reveal";
 import { profile } from "../data/wanted";
-
-gsap.registerPlugin(ScrollTrigger);
 
 // Nomor WhatsApp tujuan (format internasional tanpa +, spasi, atau strip)
 const WA_NUMBER = "6285134394748";
@@ -21,8 +16,6 @@ export function ReportContact() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [waUrl, setWaUrl] = useState("");
-  const cardRef = useRef<HTMLDivElement>(null);
-  const reduce = useReducedMotion();
 
   function onSubmit(e: FormEvent) {
     e.preventDefault();
@@ -51,33 +44,9 @@ export function ReportContact() {
     setError("");
   }
 
-  // HP: kartu ditahan sebentar pas masuk biar pala section kebaca dulu
-  // (gambar 1), baru lanjut ke form. Desktop: tanpa pin, kartu muat viewport.
-  useEffect(function () {
-    if (reduce) return;
-    const mm = gsap.matchMedia();
-    mm.add("(max-width: 1023px)", function () {
-      if (!cardRef.current) return;
-      const st = ScrollTrigger.create({
-        trigger: cardRef.current,
-        start: "top top+=84",
-        end: "+=60%",
-        pin: true,
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-      });
-      return function () {
-        st.kill();
-      };
-    });
-    return function () {
-      mm.revert();
-    };
-  }, [reduce]);
-
   return (
     <section id="lapor" className="mx-auto max-w-7xl scroll-mt-24 px-4 pb-16 md:px-6 md:pb-24">
-      <div ref={cardRef} className="paper-raised card-dossier grid gap-10 bg-paper-card p-7 md:grid-cols-2 md:p-12">
+      <div className="paper-raised card-dossier grid gap-10 bg-paper-card p-7 md:grid-cols-2 md:p-12">
         <Reveal>
           <div>
             <p className="font-mono text-[11px] font-bold tracking-[0.22em] text-stamp uppercase">
