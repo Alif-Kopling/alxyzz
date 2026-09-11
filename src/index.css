@@ -5,12 +5,12 @@
   --font-body: "Inter Variable", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 
-  /* Kunci tema BURONAN: kertas + tinta + satu cap merah. Satu halaman, tanpa invert. */
-  --color-paper: #f2ede3;
-  --color-paper-card: #faf7ef;
-  --color-paper-deep: #e7dfcf;
+  /* BURONAN: kertas + tinta + satu cap merah */
+  --color-paper: #e9e3d6;
+  --color-paper-card: #f7f3ea;
+  --color-paper-deep: #ddd4c3;
   --color-ink: #16130e;
-  --color-ink-soft: #4a4438;
+  --color-ink-soft: #514a3e;
   --color-stamp: #b3271e;
 }
 
@@ -18,16 +18,17 @@
   color-scheme: light;
 }
 
+/* Base */
 html {
-  /* Tanpa smooth bawaan browser — smoothing dipegang Lenis sepenuhnya.
-     CSS smooth + Lenis jalan bareng = loncat di batas pin. */
+  scrollbar-width: thin;
+  scrollbar-color: rgb(22 19 14 / 0.7) var(--color-paper);
 }
 
 html,
 body {
   overflow-x: clip;
-  background: #f2ede3;
-  color: #16130e;
+  background: var(--color-paper);
+  color: var(--color-ink);
 }
 
 body {
@@ -38,11 +39,11 @@ body {
 }
 
 ::selection {
-  background: #b3271e;
+  background: var(--color-stamp);
   color: #fff;
 }
 
-/* Shape lock: tombol full-pill, kartu 2px. Tidak ada radius lain. */
+/* Shape lock */
 .btn-wanted {
   border-radius: 999px;
   white-space: nowrap;
@@ -56,13 +57,13 @@ body {
   border-radius: 2px;
 }
 
-/* Kartu kertas: border tinta tipis + bayangan offset keras ala map berkas. */
+/* Kartu kertas */
 .paper-raised {
   border: 1px solid rgb(22 19 14 / 0.22);
   box-shadow: 5px 5px 0 rgb(22 19 14 / 0.9);
 }
 
-/* Garis dossier horizontal di badan kartu. */
+/* Garis dossier */
 .paper-lines {
   background-image: repeating-linear-gradient(
     0deg,
@@ -71,17 +72,18 @@ body {
   );
 }
 
-/* Grain hanya di layer fixed pointer-events-none. */
+/* Grain */
 .grain-layer {
   position: fixed;
   inset: 0;
   z-index: 60;
   pointer-events: none;
   opacity: 0.05;
+
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Lakban pembatas: garis diagonal tinta di atas kertas. */
+/* Lakban pembatas */
 .tape-stripes {
   background-image: repeating-linear-gradient(
     -45deg,
@@ -90,28 +92,26 @@ body {
   );
 }
 
-/* Scrollbar browser: tipis ala dossier. Fungsi utuh (drag + posisi),
-   bukan di-hide — penting buat navigasi section pin yang panjang. */
-html {
-  scrollbar-width: thin;
-  scrollbar-color: rgb(22 19 14 / 0.7) #f2ede3;
-}
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 10px;
 }
+
 ::-webkit-scrollbar-track {
-  background: #f2ede3;
+  background: var(--color-paper);
 }
+
 ::-webkit-scrollbar-thumb {
   background: rgb(22 19 14 / 0.7);
   border-radius: 2px;
-  border: 2px solid #f2ede3;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: #16130e;
+  border: 2px solid var(--color-paper);
 }
 
-/* Loader: titik status berdenyut ala mesin ketik berkas. */
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink);
+}
+
+/* Loader */
 .loading-dots::after {
   content: "";
   animation: loading-dots 1.2s steps(4) infinite;
@@ -121,22 +121,26 @@ html {
   0% {
     content: "";
   }
+
   25% {
     content: ".";
   }
+
   50% {
     content: "..";
   }
+
   75% {
     content: "...";
   }
 }
 
-/* Ticker: satu-satunya marquee di page. */
+/* Ticker */
 @keyframes ticker-scroll {
   from {
     transform: translateX(0);
   }
+
   to {
     transform: translateX(-50%);
   }
@@ -147,44 +151,53 @@ html {
   will-change: transform;
 }
 
-/* Peta rute Jejak: pin bernomor + marker buron + popover checkpoint. */
+/* Peta rute Jejak */
 .map-pin .pin-dot {
-  fill: #faf7ef;
-  stroke: #16130e;
+  fill: var(--color-paper-card);
+  stroke: var(--color-ink);
   stroke-width: 2;
 }
+
 .map-pin text {
-  fill: #16130e;
+  fill: var(--color-ink);
 }
+
 .map-pin.is-active .pin-dot {
-  fill: #faf7ef;
-  stroke: #b3271e;
+  fill: var(--color-paper-card);
+  stroke: var(--color-stamp);
   stroke-width: 2.5;
 }
+
 .map-pin.is-active text {
-  fill: #b3271e;
+  fill: var(--color-stamp);
 }
+
 .map-pin.unknown .pin-dot {
   stroke-dasharray: 4 3;
 }
+
 .map-idle .marker-ring {
   animation-play-state: paused;
 }
+
 .marker-ring {
   transform-box: fill-box;
   transform-origin: center;
   animation: marker-ping 2s ease-out infinite;
 }
+
 @keyframes marker-ping {
   0% {
     transform: scale(0.6);
     opacity: 0.9;
   }
+
   100% {
     transform: scale(2.4);
     opacity: 0;
   }
 }
+
 .checkpoint-pop {
   position: absolute;
   z-index: 5;
@@ -193,15 +206,19 @@ html {
   top: var(--py);
   transform: translate(18px, -50%);
 }
+
 .checkpoint-pop.flip-x {
   transform: translate(calc(-100% - 18px), -50%);
 }
+
 .checkpoint-pop.below {
   transform: translate(18px, 18px);
 }
+
 .checkpoint-pop.below.flip-x {
   transform: translate(calc(-100% - 18px), 18px);
 }
+
 @media (max-width: 1023px) {
   .checkpoint-pop,
   .checkpoint-pop.flip-x,
@@ -220,9 +237,11 @@ html {
   html {
     scroll-behavior: auto;
   }
+
   .ticker-track {
     animation: none;
   }
+
   *,
   *::before,
   *::after {

@@ -27,7 +27,7 @@ export function WantedHero() {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <a
               href="#lapor"
-              className="btn-wanted bg-ink px-6 py-3 text-sm font-semibold text-paper transition-transform hover:-translate-y-0.5"
+              className="btn-wanted bg-stamp px-6 py-3 text-sm font-semibold text-paper transition-transform hover:-translate-y-0.5"
             >
               Lapor / Rekrut
             </a>
