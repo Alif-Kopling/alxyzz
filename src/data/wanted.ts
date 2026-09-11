@@ -33,6 +33,11 @@ export const trail: TrailStop[] = [
     place: "PT Gothru Media Indonesia",
     desc: "Turun langsung ke dunia kerja lewat praktik kerja lapangan.",
   },
+  {
+    stage: "MISSING",
+    place: "Keberadaan Tidak Diketahui",
+    desc: "Lulus dari SMK. Terakhir terlihat menyiapkan lamaran kerja dan pendaftaran kuliah. Laporkan bila melihat.",
+  },
 ];
 
 export { moreRepos, profile };

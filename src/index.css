@@ -116,6 +116,70 @@ body {
   will-change: transform;
 }
 
+/* Peta rute Jejak: pin bernomor + marker buron + popover checkpoint. */
+.map-pin .pin-dot {
+  fill: #faf7ef;
+  stroke: #16130e;
+  stroke-width: 2;
+}
+.map-pin text {
+  fill: #16130e;
+}
+.map-pin.is-active .pin-dot {
+  fill: #b3271e;
+  stroke: #b3271e;
+}
+.map-pin.is-active text {
+  fill: #fff;
+}
+.map-pin.unknown .pin-dot {
+  stroke-dasharray: 4 3;
+}
+.map-pin.unknown.is-active .pin-dot {
+  fill: none;
+  stroke: #b3271e;
+}
+.map-pin.unknown.is-active text {
+  fill: #b3271e;
+}
+.marker-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: marker-ping 2s ease-out infinite;
+}
+@keyframes marker-ping {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+.checkpoint-pop {
+  position: absolute;
+  z-index: 5;
+  width: 15rem;
+  left: var(--px);
+  top: var(--py);
+  transform: translate(18px, -50%);
+}
+.checkpoint-pop.flip-x {
+  transform: translate(calc(-100% - 18px), -50%);
+}
+@media (max-width: 1023px) {
+  .checkpoint-pop,
+  .checkpoint-pop.flip-x {
+    left: 0.75rem;
+    right: 0.75rem;
+    top: auto;
+    bottom: 0.75rem;
+    width: auto;
+    transform: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
