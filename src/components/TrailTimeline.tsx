@@ -12,10 +12,10 @@ gsap.registerPlugin(ScrollTrigger);
 // (label peta jujur: sketsa, bukan skala — jangan kutip angka ini di UI).
 // Catatan: file ini sengaja tanpa template literal (pakai concat biasa).
 const RAW = [
-  { lng: 107.6759, lat: -6.5253, anchor: "start" as const, dx: 16, dy: 28, tag: "SDN 1 KALIJATI" },
-  { lng: 107.6555, lat: -6.5255, anchor: "start" as const, dx: 14, dy: -22, tag: "SMPN 1 KALIJATI" },
+  { lng: 107.6759, lat: -6.5253, anchor: "middle" as const, dx: 0, dy: -22, tag: "SDN 1 KALIJATI" },
+  { lng: 107.6555, lat: -6.5255, anchor: "middle" as const, dx: 12, dy: 38, tag: "SMPN 1 KALIJATI" },
   { lng: 107.7358, lat: -6.5476, anchor: "middle" as const, dx: 0, dy: -24, tag: "SMKN 2 SUBANG" },
-  { lng: 107.758, lat: -6.56, anchor: "end" as const, dx: -12, dy: -18, tag: "PT GOTHRU" },
+  { lng: 107.758, lat: -6.56, anchor: "start" as const, dx: -5, dy: -18, tag: "PT GOTHRU MEDIA INDONESIA" },
   { lng: 107.845, lat: -6.585, anchor: "end" as const, dx: -12, dy: -18, tag: "???" },
 ];
 
@@ -201,7 +201,7 @@ export function TrailTimeline() {
     draw(0);
     const st = ScrollTrigger.create({
       trigger: pinRef.current,
-      start: "top top",
+      start: "top top+=84",
       end: "+=300%",
       pin: true,
       scrub: 0.6,
@@ -219,8 +219,12 @@ export function TrailTimeline() {
   const active = trail[activeIdx];
   const stop = STOPS[activeIdx];
   const fx = (stop.x / VB_W) * 100;
-  const fy = Math.min(78, Math.max(22, (stop.y / VB_H) * 100));
-  const popClass = "checkpoint-pop" + (fx > 55 ? " flip-x" : "");
+  const rawFy = (stop.y / VB_H) * 100;
+  // Pin di sepertiga atas: popover dibuka ke bawah pin biar tidak
+  // menimpa label SDN/SMPN yang duduk di kanan pin.
+  const below = rawFy < 30;
+  const fy = below ? Math.max(10, rawFy) : Math.min(78, Math.max(22, rawFy));
+  const popClass = "checkpoint-pop" + (fx > 55 ? " flip-x" : "") + (below ? " below" : "");
   const popStyle = { "--px": fx + "%", "--py": fy + "%" } as CSSProperties;
 
   return (
@@ -259,7 +263,7 @@ export function TrailTimeline() {
         </div>
       ) : (
         <div ref={pinRef} className="relative mt-10">
-          <div className="paper-raised card-dossier relative bg-paper-card p-2 md:p-3">
+          <div className="paper-raised card-dossier relative mb-8 bg-paper-card p-2 md:p-3">
             <RouteMap mode="scrub" pathRef={pathRef} markerRef={markerRef} setPin={setPin} />
             {/* Bar progres + penanda titik */}
             <div className="absolute inset-x-0 top-0 p-4 md:p-5">

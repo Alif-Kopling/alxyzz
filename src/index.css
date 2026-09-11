@@ -126,21 +126,15 @@ body {
   fill: #16130e;
 }
 .map-pin.is-active .pin-dot {
-  fill: #b3271e;
+  fill: #faf7ef;
   stroke: #b3271e;
+  stroke-width: 2.5;
 }
 .map-pin.is-active text {
-  fill: #fff;
+  fill: #b3271e;
 }
 .map-pin.unknown .pin-dot {
   stroke-dasharray: 4 3;
-}
-.map-pin.unknown.is-active .pin-dot {
-  fill: none;
-  stroke: #b3271e;
-}
-.map-pin.unknown.is-active text {
-  fill: #b3271e;
 }
 .marker-ring {
   transform-box: fill-box;
@@ -168,9 +162,17 @@ body {
 .checkpoint-pop.flip-x {
   transform: translate(calc(-100% - 18px), -50%);
 }
+.checkpoint-pop.below {
+  transform: translate(18px, 18px);
+}
+.checkpoint-pop.below.flip-x {
+  transform: translate(calc(-100% - 18px), 18px);
+}
 @media (max-width: 1023px) {
   .checkpoint-pop,
-  .checkpoint-pop.flip-x {
+  .checkpoint-pop.flip-x,
+  .checkpoint-pop.below,
+  .checkpoint-pop.below.flip-x {
     left: 0.75rem;
     right: 0.75rem;
     top: auto;
