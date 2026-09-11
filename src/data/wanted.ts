@@ -41,3 +41,25 @@ export const trail: TrailStop[] = [
 ];
 
 export { moreRepos, profile };
+
+// Berkas identitas target — data asli, verbatim dari file pemilik.
+export const wantedFile = {
+  caseId: "ALX-017",
+  status: "At Large",
+  threat: "High",
+  classification: "Frontend Developer",
+  identity: [
+    { label: "Nama", value: "Muhammad Alif Fakhri Zain" },
+    { label: "Alias", value: "Alxyzz" },
+    { label: "Usia", value: "17 tahun" },
+    { label: "Domisili", value: "Subang-Jawa Barat-Indonesia" },
+    { label: "Status", value: "Pelajar" },
+    { label: "Jurusan", value: "Rekayasa Perangkat Lunak (RPL)" },
+    { label: "Sekolah", value: "SMK Negeri 2 Subang" },
+  ],
+  profile: [
+    "Target dikenal sebagai seorang pelajar RPL yang memiliki ketertarikan kuat terhadap pengembangan perangkat lunak, khususnya pada bidang frontend development.",
+    "Memiliki kecenderungan untuk mengubah ide menjadi antarmuka web yang interaktif, eksperimental, dan tidak selalu mengikuti format portfolio konvensional.",
+    "Target diketahui lebih sering ditemukan bersama terminal, browser, Git, dan berbagai proyek yang sedang dalam tahap development.",
+  ],
+};

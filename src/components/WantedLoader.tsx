@@ -73,7 +73,7 @@ export function WantedLoader({ onDone }: WantedLoaderProps) {
             Berkas Kasus
           </p>
           <p className="mt-2 font-mono text-[11px] tracking-[0.18em] text-ink-soft uppercase">
-            ALX-2026 · Subang
+            ALX-017 · Subang
           </p>
 
           <div className="mt-6">

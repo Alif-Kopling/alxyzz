@@ -62,7 +62,7 @@ export function WantedHero() {
                 Alxyzz
               </figcaption>
               <span className="font-mono text-[11px] tracking-[0.18em] text-ink-soft">
-                ALX-2026
+                ALX-017
               </span>
             </div>
             <motion.span

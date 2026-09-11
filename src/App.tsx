@@ -4,6 +4,8 @@ import { WantedNav } from "./components/WantedNav";
 import { SmoothScroll } from "./components/SmoothScroll";
 import { WantedLoader } from "./components/WantedLoader";
 import { WantedHero } from "./components/WantedHero";
+import { SectionTape } from "./components/SectionTape";
+import { WantedFile } from "./components/WantedFile";
 import { TickerTape } from "./components/TickerTape";
 import { CaseStack } from "./components/CaseStack";
 import { ArsenalGrid } from "./components/ArsenalGrid";
@@ -39,6 +41,8 @@ function App() {
       {!loading && (
         <main>
           <WantedHero />
+          <SectionTape />
+          <WantedFile />
           <TickerTape />
           <CaseStack />
           <ArsenalGrid />
