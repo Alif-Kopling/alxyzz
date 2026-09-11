@@ -90,6 +90,27 @@ body {
   );
 }
 
+/* Scrollbar browser: tipis ala dossier. Fungsi utuh (drag + posisi),
+   bukan di-hide — penting buat navigasi section pin yang panjang. */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(22 19 14 / 0.7) #f2ede3;
+}
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f2ede3;
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(22 19 14 / 0.7);
+  border-radius: 2px;
+  border: 2px solid #f2ede3;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #16130e;
+}
+
 /* Loader: titik status berdenyut ala mesin ketik berkas. */
 .loading-dots::after {
   content: "";
