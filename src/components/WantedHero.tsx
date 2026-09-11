@@ -72,7 +72,7 @@ export function WantedHero() {
               transition={{ delay: 0.6, type: "spring", stiffness: 220, damping: 17 }}
               className="absolute top-5 -left-3 border-[3px] border-stamp px-3 py-1 font-mono text-sm font-bold tracking-[0.2em] text-stamp uppercase outline-1 outline-stamp outline-offset-2"
             >
-              Reward: Hire
+              Reward: 3 Netherite Ingots
             </motion.span>
           </figure>
           <p className="mt-4 text-right font-mono text-[11px] tracking-[0.18em] text-ink-soft uppercase">

@@ -2,7 +2,7 @@ const items = [
   "Terakhir terlihat: Subang",
   "Senjata: React / TypeScript / Tailwind",
   "Status: Open for hire",
-  "Reward: Hire",
+  "Reward: 10.000.000 Coin",
 ];
 
 // Satu-satunya marquee di page: pita kabar tinta.

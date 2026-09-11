@@ -36,7 +36,7 @@ export const trail: TrailStop[] = [
   {
     stage: "MISSING",
     place: "Keberadaan Tidak Diketahui",
-    desc: "Lulus dari SMK. Terakhir terlihat menyiapkan lamaran kerja dan pendaftaran kuliah. Laporkan bila melihat.",
+    desc: "Terakhir telihat di Subang, Jawa Barat, Indonesia. Tidak ada informasi lebih lanjut.",
   },
 ];
 

@@ -20,7 +20,7 @@ export function WantedNav() {
         <a href="#atas" className="flex shrink-0 items-center gap-2.5" aria-label="Ke atas">
           <img src="/mark-alxyzz.svg" alt="" aria-hidden="true" className="h-8 w-8 text-ink" />
           <span className="font-display text-sm font-extrabold tracking-tight text-ink">
-            WANTED: ALXYZZ
+            Alxyzz Archive
           </span>
         </a>
 
