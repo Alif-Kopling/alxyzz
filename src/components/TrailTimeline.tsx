@@ -240,7 +240,7 @@ export function TrailTimeline() {
 
       {reduce ? (
         <div className="mt-10 grid gap-6">
-          <div className="paper-raised card-dossier bg-paper-card p-3 md:p-4">
+          <div className="paper-raised card-dossier mx-auto w-[95%] bg-paper-card p-3 md:p-4">
             <RouteMap mode="static" />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
@@ -263,7 +263,7 @@ export function TrailTimeline() {
         </div>
       ) : (
         <div ref={pinRef} className="relative mt-10">
-          <div className="paper-raised card-dossier relative mb-8 bg-paper-card p-2 md:p-3">
+          <div className="paper-raised card-dossier relative mx-auto mb-8 w-[95%] bg-paper-card p-2 md:p-3">
             <RouteMap mode="scrub" pathRef={pathRef} markerRef={markerRef} setPin={setPin} />
             {/* Bar progres + penanda titik */}
             <div className="absolute inset-x-0 top-0 p-4 md:p-5">
