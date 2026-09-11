@@ -35,7 +35,7 @@ export const projects: Project[] = [
     demoUrl: "https://hallo-wok.vercel.app",
     seed: "alxyzz-realchat-web",
     alt: "Tampilan aplikasi chat realchat-web",
-    preview: "/preview-realchat.png",
+    preview: "/preview-realchat.webp",
   },
   {
     name: "landing-page",
@@ -45,7 +45,7 @@ export const projects: Project[] = [
     demoUrl: "https://subang-landing-page.vercel.app",
     seed: "alxyzz-landing-page",
     alt: "Tampilan landing page Subang",
-    preview: "/preview-landingpage.png",
+    preview: "/preview-landingpage.webp",
   },
   {
     name: "Archivio-fe",
@@ -55,7 +55,7 @@ export const projects: Project[] = [
     demoUrl: null,
     seed: "alxyzz-archivio-fe",
     alt: "Tampilan frontend Archivio",
-    preview: "/preview-archivio.png",
+    preview: "/preview-archivio.webp",
   },
 ];
 

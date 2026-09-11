@@ -51,7 +51,7 @@ export function WantedHero() {
         >
           <figure className="paper-raised card-dossier relative ml-auto max-w-sm rotate-2 bg-paper-card p-3 pb-4">
             <img
-              src="/my-photo.png"
+              src="/my-photo.webp"
               alt="Foto buronan Alxyzz"
               loading="eager"
               fetchPriority="high"
