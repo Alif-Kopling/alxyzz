@@ -27,13 +27,13 @@ export function WantedHero() {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <a
               href="#lapor"
-              className="btn-wanted bg-stamp px-6 py-3 text-sm font-semibold text-paper transition-transform hover:-translate-y-0.5"
+              className="btn-wanted btn-3d bg-stamp px-6 py-3 text-sm font-semibold text-paper"
             >
               Lapor / Rekrut
             </a>
             <a
               href="#berkas"
-              className="btn-wanted border border-ink/30 px-6 py-3 text-sm font-semibold text-ink transition-transform hover:-translate-y-0.5 hover:bg-ink/5"
+              className="btn-wanted btn-3d border border-ink/30 px-6 py-3 text-sm font-semibold text-ink hover:bg-ink/5"
             >
               Buka Berkas
             </a>

@@ -40,7 +40,7 @@ export function WantedNav() {
         <div className="flex shrink-0 items-center gap-2">
           <a
             href="#lapor"
-            className="btn-wanted hidden bg-stamp px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-transform hover:-translate-y-0.5 sm:inline-flex"
+            className="btn-wanted btn-3d hidden bg-stamp px-4 py-2 font-mono text-[11px] font-bold uppercase tracking-[0.18em] text-white sm:inline-flex"
           >
             Lapor / Rekrut
           </a>
@@ -74,7 +74,7 @@ export function WantedNav() {
               <a
                 href="#lapor"
                 onClick={() => setOpen(false)}
-                className="btn-wanted block bg-stamp px-4 py-3 text-center font-mono text-xs font-bold uppercase tracking-[0.18em] text-white"
+                className="btn-wanted btn-3d block bg-stamp px-4 py-3 text-center font-mono text-xs font-bold uppercase tracking-[0.18em] text-white"
               >
                 Lapor / Rekrut
               </a>

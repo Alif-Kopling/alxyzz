@@ -53,6 +53,32 @@ body {
   transform: translateY(1px) scale(0.98);
 }
 
+/* Tombol 3D press: diam berbayang keras, hover terangkat, klik kepencet.
+   Lift-nya cuma di pointer presisi — touch cukup feedback :active. */
+.btn-3d {
+  transition:
+    transform 160ms ease-out,
+    box-shadow 160ms ease-out;
+}
+@media (hover: hover) {
+  .btn-3d {
+    box-shadow: 3px 3px 0 rgb(22 19 14 / 0.9);
+  }
+  .btn-3d:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 rgb(22 19 14 / 0.9);
+  }
+  .btn-3d:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0 0 0 rgb(22 19 14 / 0.9);
+  }
+}
+@media (hover: none) {
+  .btn-3d:active {
+    transform: translate(1px, 1px);
+  }
+}
+
 .card-dossier {
   border-radius: 2px;
 }
