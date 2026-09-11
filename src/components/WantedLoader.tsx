@@ -105,7 +105,7 @@ export function WantedLoader({ onDone }: WantedLoaderProps) {
               transition={{ type: "spring", stiffness: 260, damping: 16 }}
               className="absolute -top-3 -right-2 border-[3px] border-stamp px-3 py-1 font-mono text-sm font-bold tracking-[0.2em] text-stamp uppercase outline-1 outline-stamp outline-offset-2"
             >
-              Diburu
+              Wanted
             </motion.span>
           )}
         </div>

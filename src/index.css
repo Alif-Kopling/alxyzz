@@ -19,7 +19,8 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* Tanpa smooth bawaan browser — smoothing dipegang Lenis sepenuhnya.
+     CSS smooth + Lenis jalan bareng = loncat di batas pin. */
 }
 
 html,

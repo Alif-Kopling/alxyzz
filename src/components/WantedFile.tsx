@@ -45,32 +45,38 @@ export function WantedFile() {
             ))}
           </dl>
 
-          <h3 className="font-display mt-10 text-xl font-extrabold tracking-tight text-ink uppercase md:text-2xl">
-            Identitas Target
-          </h3>
-          <dl className="mt-4 border-y border-ink/20">
-            {wantedFile.identity.map((row) => (
-              <div
-                key={row.label}
-                className="grid grid-cols-[120px_1fr] gap-3 border-b border-ink/10 py-3 last:border-b-0 sm:grid-cols-[200px_1fr]"
-              >
-                <dt className="font-mono text-xs font-bold tracking-[0.18em] text-ink-soft uppercase">
-                  {row.label}
-                </dt>
-                <dd className="text-sm font-semibold text-ink md:text-base">{row.value}</dd>
-              </div>
-            ))}
-          </dl>
+          <div className="mt-10 grid gap-10 lg:grid-cols-2">
+            <div>
+              <h3 className="font-display text-xl font-extrabold tracking-tight text-ink uppercase md:text-2xl">
+                Identitas Target
+              </h3>
+              <dl className="mt-4 border-y border-ink/20">
+                {wantedFile.identity.map((row) => (
+                  <div
+                    key={row.label}
+                    className="grid grid-cols-[120px_1fr] gap-3 border-b border-ink/10 py-3 last:border-b-0 sm:grid-cols-[160px_1fr]"
+                  >
+                    <dt className="font-mono text-xs font-bold tracking-[0.18em] text-ink-soft uppercase">
+                      {row.label}
+                    </dt>
+                    <dd className="text-sm font-semibold text-ink md:text-base">{row.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
 
-          <h3 className="font-display mt-10 text-xl font-extrabold tracking-tight text-ink uppercase md:text-2xl">
-            Profil
-          </h3>
-          <div className="mt-4 grid gap-4">
-            {wantedFile.profile.map((p, i) => (
-              <p key={i} className="max-w-[65ch] text-base leading-relaxed text-ink-soft">
-                {p}
-              </p>
-            ))}
+            <div>
+              <h3 className="font-display text-xl font-extrabold tracking-tight text-ink uppercase md:text-2xl">
+                Profil
+              </h3>
+              <div className="mt-4 grid gap-4">
+                {wantedFile.profile.map((p, i) => (
+                  <p key={i} className="max-w-[65ch] text-base leading-relaxed text-ink-soft">
+                    {p}
+                  </p>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </Reveal>

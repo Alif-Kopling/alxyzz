@@ -377,7 +377,7 @@ export function TrailTimeline() {
               style={{ opacity: 0 }}
             >
               <span className="-rotate-6 border-[3px] border-stamp bg-paper/80 px-4 py-2 font-mono text-lg font-bold tracking-[0.2em] text-stamp uppercase outline-1 outline-stamp outline-offset-2 md:text-xl">
-                Buron belum tertangkap
+                Pelaku belum tertangkap
               </span>
             </div>
           </div>
