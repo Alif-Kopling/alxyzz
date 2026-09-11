@@ -164,6 +164,10 @@ export function TrailTimeline() {
   const pathRef = useRef<SVGPathElement | null>(null);
   const markerRef = useRef<SVGGElement | null>(null);
   const barRef = useRef<HTMLDivElement>(null);
+  const zoomRef = useRef<HTMLDivElement>(null);
+  const popWrapRef = useRef<HTMLDivElement>(null);
+  const stampRef = useRef<HTMLDivElement>(null);
+  const exitRef = useRef<HTMLDivElement>(null);
   const pinEls = useRef<Array<SVGGElement | null>>([]);
   const idxRef = useRef(0);
   const [activeIdx, setActiveIdx] = useState(0);
@@ -183,13 +187,61 @@ export function TrailTimeline() {
     const len = path.getTotalLength();
     path.style.strokeDasharray = String(len);
     path.style.strokeDashoffset = String(len);
+    // Fraksi progres saat marker TIBA di tiap titik, diukur dari path asli
+    // (sampling 400 titik). Segment panjang-pendek beda jauh, jadi bagi-rata
+    // bikin pin telat/kecepetan.
+    const arrivals: number[] = STOPS.map(function (s) {
+      const SAMPLES = 400;
+      let best = 0;
+      let bestD = Infinity;
+      for (let k = 0; k <= SAMPLES; k++) {
+        const pt = path.getPointAtLength((k / SAMPLES) * len);
+        const dx = pt.x - s.x;
+        const dy = pt.y - s.y;
+        const d = dx * dx + dy * dy;
+        if (d < bestD) {
+          bestD = d;
+          best = k / SAMPLES;
+        }
+      }
+      return best;
+    });
+    const LEAD = 0.02;
+    // Fase 1 (0 → ROUTE_END): rute digambar. Fase 2: kamera zoom ke titik MISSING.
+    const ROUTE_END = 0.55;
+    const ZOOM_END = 0.8;
+    const ZOOM_MAX = 3.0;
     function draw(p: number) {
       const cl = Math.max(0, Math.min(1, p));
-      path.style.strokeDashoffset = String(len * (1 - cl));
-      const pt = path.getPointAtLength(cl * len);
+      const rp = Math.min(1, cl / ROUTE_END);
+      const zpRaw = (cl - ROUTE_END) / (ZOOM_END - ROUTE_END);
+      const zp = Math.max(0, Math.min(1, zpRaw));
+      const ze = zp * zp * (3 - 2 * zp);
+      path.style.strokeDashoffset = String(len * (1 - rp));
+      const pt = path.getPointAtLength(rp * len);
       marker.setAttribute("transform", "translate(" + pt.x + "," + pt.y + ")");
       if (bar) bar.style.transform = "scaleX(" + cl + ")";
-      const idx = Math.min(trail.length - 1, Math.floor(cl * trail.length));
+      const zoomEl = zoomRef.current;
+      if (zoomEl) zoomEl.style.transform = "scale(" + (1 + ZOOM_MAX * ze) + ")";
+      const popEl = popWrapRef.current;
+      if (popEl) popEl.style.opacity = String(1 - Math.min(1, zp / 0.25));
+      const stampEl = stampRef.current;
+      if (stampEl) stampEl.style.opacity = String(Math.max(0, Math.min(1, (zp - 0.5) / 0.5)));
+      // Fase 3 (ujung pin): kartu peta exit diagonal kiri-atas + fade,
+      // section Pengakuan masuk dari bawah. Reverse otomatis pas scroll balik.
+      const EXIT_START = 0.88;
+      const epRaw = (cl - EXIT_START) / (1 - EXIT_START);
+      const ep = Math.max(0, Math.min(1, epRaw));
+      const ee = ep * ep * (3 - 2 * ep);
+      const exitEl = exitRef.current;
+      if (exitEl) {
+        exitEl.style.transform = "translate(" + (-6 * ee) + "dvw," + (-16 * ee) + "dvh)";
+        exitEl.style.opacity = String(1 - ee);
+      }
+      let idx = 0;
+      for (let i = 0; i < arrivals.length; i++) {
+        if (rp >= arrivals[i] - LEAD) idx = i;
+      }
       if (idx !== idxRef.current) {
         idxRef.current = idx;
         setActiveIdx(idx);
@@ -202,7 +254,7 @@ export function TrailTimeline() {
     const st = ScrollTrigger.create({
       trigger: pinRef.current,
       start: "top top+=84",
-      end: "+=300%",
+      end: "+=400%",
       pin: true,
       scrub: 0.6,
       anticipatePin: 1,
@@ -226,6 +278,8 @@ export function TrailTimeline() {
   const fy = below ? Math.max(10, rawFy) : Math.min(78, Math.max(22, rawFy));
   const popClass = "checkpoint-pop" + (fx > 55 ? " flip-x" : "") + (below ? " below" : "");
   const popStyle = { "--px": fx + "%", "--py": fy + "%" } as CSSProperties;
+  const lastStop = STOPS[STOPS.length - 1];
+  const zoomOrigin = (lastStop.x / VB_W) * 100 + "% " + (lastStop.y / VB_H) * 100 + "%";
 
   return (
     <section id="jejak" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-16 md:px-6 md:py-24">
@@ -263,8 +317,12 @@ export function TrailTimeline() {
         </div>
       ) : (
         <div ref={pinRef} className="relative mt-10">
-          <div className="paper-raised card-dossier relative mx-auto mb-8 w-[95%] bg-paper-card p-2 md:p-3">
-            <RouteMap mode="scrub" pathRef={pathRef} markerRef={markerRef} setPin={setPin} />
+          <div ref={exitRef} className="paper-raised card-dossier relative mx-auto mb-8 w-[95%] bg-paper-card p-2 will-change-transform md:p-3">
+            <div className="relative overflow-hidden">
+              <div ref={zoomRef} className="will-change-transform" style={{ transformOrigin: zoomOrigin }}>
+                <RouteMap mode="scrub" pathRef={pathRef} markerRef={markerRef} setPin={setPin} />
+              </div>
+            </div>
             {/* Bar progres + penanda titik */}
             <div className="absolute inset-x-0 top-0 p-4 md:p-5">
               <div className="h-[3px] w-full bg-ink/10">
@@ -284,7 +342,7 @@ export function TrailTimeline() {
               </div>
             </div>
             {/* Popover checkpoint: nempel pin aktif, flip otomatis */}
-            <div className={popClass} style={popStyle}>
+            <div ref={popWrapRef} className={popClass} style={popStyle}>
               <motion.div
                 key={activeIdx}
                 initial={{ opacity: 0, y: 14, scale: 0.97 }}
@@ -300,6 +358,16 @@ export function TrailTimeline() {
                 </h3>
                 <p className="mt-1 text-[13px] leading-relaxed text-ink-soft">{active.desc}</p>
               </motion.div>
+            </div>
+            <div
+              ref={stampRef}
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center"
+              style={{ opacity: 0 }}
+            >
+              <span className="-rotate-6 border-[3px] border-stamp bg-paper/80 px-4 py-2 font-mono text-lg font-bold tracking-[0.2em] text-stamp uppercase outline-1 outline-stamp outline-offset-2 md:text-xl">
+                Buron belum tertangkap
+              </span>
             </div>
           </div>
         </div>
