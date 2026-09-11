@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" role="img" aria-label="Alxyzz mark">
+  <title>Alxyzz</title>
+  <!-- Ring cap ganda: lingkaran luar tebal + dalam tipis -->
+  <circle cx="32" cy="32" r="29" stroke="currentColor" stroke-width="3.5"/>
+  <circle cx="32" cy="32" r="23" stroke="currentColor" stroke-width="1.5"/>
+  <!-- Huruf A geometris, apex tajam -->
+  <path d="M21 47.5 32 17l11 30.5" stroke="currentColor" stroke-width="6.5" stroke-linejoin="miter" stroke-linecap="butt"/>
+  <!-- Spark 4-sisi melayang sebagai pengganti crossbar -->
+  <path d="M32 34.8c.75 2.4 1.6 3.25 4 4-2.4.75-3.25 1.6-4 4-.75-2.4-1.6-3.25-4-4 2.4-.75 3.25-1.6 4-4Z" fill="currentColor"/>
+</svg>
