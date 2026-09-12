@@ -33,6 +33,11 @@ export function WantedPoster3D({
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const reduce = useReducedMotion();
+  const reduceRef = useRef(reduce);
+  useEffect(() => {
+    reduceRef.current = reduce;
+  }, [reduce]);
+
   const [webGlSupported] = useState(isWebGLAvailable);
 
   useEffect(() => {
@@ -49,7 +54,9 @@ export function WantedPoster3D({
 
     // 2. Camera setup
     const fov = 42;
-    const aspect = container.clientWidth / container.clientHeight;
+    const width = container.clientWidth || 420;
+    const height = container.clientHeight || 580;
+    const aspect = width / height;
     const camera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 100);
     camera.position.set(0, 0, 6.2);
 
@@ -63,7 +70,7 @@ export function WantedPoster3D({
       powerPreference: "high-performance",
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1.5 : 2));
-    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setSize(width, height);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
     renderer.shadowMap.enabled = true;
@@ -301,25 +308,26 @@ export function WantedPoster3D({
     posterGroup.add(paperMesh);
 
     // C. Photo Mesh (Positioned exactly inside the Western dark frame)
+    const photoWidth = 1.92;
+    const photoHeight = 2.02;
+    const photoGeo = new THREE.PlaneGeometry(photoWidth, photoHeight);
     const textureLoader = new THREE.TextureLoader();
-    textureLoader.load(photoUrl, (texture) => {
-      texture.colorSpace = THREE.SRGBColorSpace;
-      const photoWidth = 1.92;
-      const photoHeight = 2.02;
-      const photoGeo = new THREE.PlaneGeometry(photoWidth, photoHeight);
-
-      // Give photo semi-gloss luster (specular sheen)
-      const photoMat = new THREE.MeshStandardMaterial({
-        map: texture,
-        roughness: 0.38,
-        metalness: 0.12,
-      });
-
-      const photoMesh = new THREE.Mesh(photoGeo, photoMat);
-      photoMesh.position.set(0, 0.29, 0.015);
-      photoMesh.castShadow = true;
-      posterGroup.add(photoMesh);
+    const photoTexture = textureLoader.load(photoUrl, () => {
+      renderer.shadowMap.needsUpdate = true;
     });
+    photoTexture.colorSpace = THREE.SRGBColorSpace;
+
+    // Give photo semi-gloss luster (specular sheen)
+    const photoMat = new THREE.MeshStandardMaterial({
+      map: photoTexture,
+      roughness: 0.38,
+      metalness: 0.12,
+    });
+
+    const photoMesh = new THREE.Mesh(photoGeo, photoMat);
+    photoMesh.position.set(0, 0.29, 0.015);
+    photoMesh.castShadow = true;
+    posterGroup.add(photoMesh);
 
     // D. Physical 3D Push Pin at Top
     const pinGroup = new THREE.Group();
@@ -354,7 +362,7 @@ export function WantedPoster3D({
     let currentPosZ = 0;
 
     function onPointerMove(e: MouseEvent) {
-      if (reduce) return;
+      if (reduceRef.current) return;
       const rect = container!.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       const y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
@@ -407,17 +415,18 @@ export function WantedPoster3D({
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     const visibilityObserver = new IntersectionObserver(([entry]) => {
-      isVisible = entry.isIntersecting;
+      const isNearTop = typeof window !== "undefined" && window.scrollY < window.innerHeight;
+      isVisible = entry.isIntersecting || isNearTop;
       if (isVisible) {
         renderer.shadowMap.needsUpdate = true;
       }
     });
     visibilityObserver.observe(container);
 
-    // 9. Render Loop with Smooth Damping & Cinematic Entrance
+    // 9. Render Loop with Smooth Damping & Calm Tactile Entrance
     let lastTime = performance.now();
     const introStartTime = performance.now();
-    const introDuration = 1000; // 1.0s entrance sequence
+    const introDuration = 800; // 0.8s entrance sequence
     let elapsedSeconds = 0;
 
     function animate(currentTime: number) {
@@ -428,23 +437,23 @@ export function WantedPoster3D({
       lastTime = currentTime;
       elapsedSeconds += delta;
 
-      if (!reduce) {
-        // Entrance progress: 0 -> 1 with smooth ease-out
+      if (!reduceRef.current) {
+        // Entrance progress: 0 -> 1 with smooth cubic ease-out
         const introP = Math.min((currentTime - introStartTime) / introDuration, 1);
         const easeIntro = 1 - Math.pow(1 - introP, 3);
 
-        // Desk spotlight powers on & warms up
-        deskLamp.intensity = 3.8 * easeIntro;
+        // Desk spotlight warm & steady immediately (no flickering light switch)
+        deskLamp.intensity = 3.8;
 
-        // Camera smoothly dollies in: 7.7 -> 6.2
-        camera.position.z = 6.2 + (1 - easeIntro) * 1.5;
+        // Camera smoothly settles into place (subtle dolly: 6.55 -> 6.2)
+        camera.position.z = 6.2 + (1 - easeIntro) * 0.35;
 
-        // Poster drops & docks onto desk table
-        const introYOffset = (1 - easeIntro) * 0.9;
-        const introRotX = (1 - easeIntro) * -0.22;
+        // Poster settles softly onto desk table (subtle drop: 0.2 -> 0)
+        const introYOffset = (1 - easeIntro) * 0.2;
+        const introRotX = (1 - easeIntro) * -0.05;
 
         // Subtle ambient floating breathing motion
-        const floatZ = Math.sin(elapsedSeconds * 1.6) * 0.04 * easeIntro;
+        const floatZ = Math.sin(elapsedSeconds * 1.6) * 0.04;
         const floatRotZ = 0.035 + Math.cos(elapsedSeconds * 1.2) * 0.015;
 
         // Smooth Lerp damping
@@ -468,6 +477,8 @@ export function WantedPoster3D({
       renderer.render(scene, camera);
     }
 
+    // Immediately render frame 0 synchronously so canvas is never blank
+    renderer.render(scene, camera);
     animate(performance.now());
 
     // Cleanup
@@ -483,13 +494,16 @@ export function WantedPoster3D({
       paperGeo.dispose();
       paperMat.dispose();
       paperTexture.dispose();
+      photoGeo.dispose();
+      photoMat.dispose();
+      photoTexture.dispose();
       backingGeo.dispose();
       backingMat.dispose();
       pinHeadGeo.dispose();
       capGeo.dispose();
       pinMat.dispose();
     };
-  }, [photoUrl, name, code, reward, location, reduce, webGlSupported]);
+  }, [photoUrl, name, code, reward, location, webGlSupported]);
 
   if (!webGlSupported) {
     // Elegant static fallback matching authentic Western Wanted poster

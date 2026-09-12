@@ -1,9 +1,5 @@
-import { lazy, Suspense } from "react";
 import { motion, useReducedMotion } from "motion/react";
-
-const WantedPoster3D = lazy(() =>
-  import("./canvas/WantedPoster3D").then((m) => ({ default: m.WantedPoster3D }))
-);
+import { WantedPoster3D } from "./canvas/WantedPoster3D";
 
 // Hero split asimetris: kiri dakwaan, kanan poster 3D fisik. Fit initial viewport, 4 elemen teks max.
 export function WantedHero() {
@@ -45,52 +41,18 @@ export function WantedHero() {
         </motion.div>
 
         <motion.div
-          initial={reduce ? false : { opacity: 0, y: 28 }}
+          initial={reduce ? false : { opacity: 0, y: 18 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.6, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="relative lg:col-span-6 xl:col-span-5"
         >
-          <Suspense
-            fallback={
-              <figure className="paper-raised card-dossier relative ml-auto max-w-sm rotate-2 bg-paper-card p-4 pb-5">
-                <div className="border-4 border-ink p-3 text-center">
-                  <p className="font-display text-3xl font-extrabold tracking-[0.22em] text-ink uppercase">
-                    WANTED
-                  </p>
-                  <div className="my-1.5 bg-ink py-1 font-mono text-[10px] font-bold tracking-[0.24em] text-paper uppercase">
-                    DEAD OR ALIVE
-                  </div>
-                  <div className="border-2 border-ink p-1">
-                    <img
-                      src="/my-photo.webp"
-                      alt="Foto buronan Alxyzz"
-                      className="aspect-[4/5] w-full object-cover object-top"
-                    />
-                  </div>
-                  <div className="my-1.5 bg-ink py-1 font-mono text-[10px] font-bold tracking-[0.16em] text-paper uppercase">
-                    ARMED AND VERY DANGEROUS
-                  </div>
-                  <div className="mt-2 flex items-baseline justify-between px-1">
-                    <div className="text-left font-mono">
-                      <span className="block text-xs font-black tracking-wider text-ink">CASH</span>
-                      <span className="block text-[9px] font-bold tracking-widest text-ink">REWARD</span>
-                    </div>
-                    <span className="font-display text-2xl font-black tracking-tight text-ink">
-                      1.000.000 $
-                    </span>
-                  </div>
-                </div>
-              </figure>
-            }
-          >
-            <WantedPoster3D
-              photoUrl="/my-photo.webp"
-              name="Alxyzz"
-              code="ALX-017"
-              reward="1.000.000 $"
-              location="Terakhir terlihat: Subang"
-            />
-          </Suspense>
+          <WantedPoster3D
+            photoUrl="/my-photo.webp"
+            name="Alxyzz"
+            code="ALX-017"
+            reward="1.000.000 $"
+            location="Terakhir terlihat: Subang"
+          />
         </motion.div>
       </div>
     </section>
