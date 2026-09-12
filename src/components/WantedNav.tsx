@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { List, X } from "@phosphor-icons/react";
 
 const links = [
@@ -7,12 +8,18 @@ const links = [
   { label: "Jejak", href: "#jejak" },
 ];
 
-// Satu-satunya navigasi di page: bar 68px satu baris di desktop.
+// Satu-satunya navigasi di page: bar 68px satu baris di desktop dengan entrance halus.
 export function WantedNav() {
   const [open, setOpen] = useState(false);
+  const reduce = useReducedMotion();
 
   return (
-    <header className="fixed inset-x-0 top-0 z-20 border-b border-ink/15 bg-paper/95 backdrop-blur-sm">
+    <motion.header
+      initial={reduce ? false : { y: -28, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.6, delay: 0.05, ease: [0.16, 1, 0.3, 1] }}
+      className="fixed inset-x-0 top-0 z-20 border-b border-ink/15 bg-paper/95 backdrop-blur-sm"
+    >
       <nav
         aria-label="Navigasi utama"
         className="mx-auto flex h-[68px] max-w-7xl items-center justify-between gap-2 px-4 md:px-6"
@@ -82,6 +89,6 @@ export function WantedNav() {
           </ul>
         </div>
       )}
-    </header>
+    </motion.header>
   );
 }

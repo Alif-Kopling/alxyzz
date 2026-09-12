@@ -10,7 +10,7 @@ export function Confession() {
             “Berikan aku seporsi nasgor maka akan kutunjukkan cara membuat website.”
           </blockquote>
           <figcaption className="mt-5 font-mono text-xs tracking-[0.18em] text-ink-soft uppercase">
-            Pengakuan resmi — Alxyzz, Frontend Developer
+            Pengakuan resmi · Alxyzz, Frontend Developer
           </figcaption>
         </figure>
       </Reveal>

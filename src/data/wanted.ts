@@ -26,7 +26,7 @@ export const trail: TrailStop[] = [
   {
     stage: "SMK",
     place: "SMKN 2 Subang",
-    desc: "Pindah ke Subang untuk SMK — di sini mulai kenal dunia teknologi.",
+    desc: "Pindah ke Subang untuk SMK - di sini mulai kenal dunia teknologi.",
   },
   {
     stage: "PKL",
@@ -42,7 +42,7 @@ export const trail: TrailStop[] = [
 
 export { moreRepos, profile };
 
-// Berkas identitas target — data asli, verbatim dari file pemilik.
+// Berkas identitas target: data asli, verbatim dari file pemilik.
 export const wantedFile = {
   caseId: "ALX-017",
   status: "At Large",

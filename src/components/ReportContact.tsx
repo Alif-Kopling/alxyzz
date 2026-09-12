@@ -53,7 +53,7 @@ export function ReportContact() {
               Kantor Laporan
             </p>
             <h2 className="font-display mt-3 max-w-[14ch] text-3xl font-extrabold tracking-tighter text-ink uppercase md:text-4xl">
-              Tertatarik untuk bekerja sama? Lapor proyekmu di sini.
+              Tertarik untuk bekerja sama? Lapor proyekmu di sini.
             </h2>
             <p className="mt-3 max-w-[46ch] text-base leading-relaxed text-ink-soft">
               Ceritakan kebutuhan secara singkat. Saya balas dalam satu hari kerja dengan
@@ -151,7 +151,7 @@ export function ReportContact() {
               <button
                 type="submit"
                 disabled={status === "sending"}
-                className="btn-wanted inline-flex items-center justify-center gap-2 bg-stamp px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:brightness-110 disabled:opacity-60"
+                className="btn-wanted btn-3d inline-flex items-center justify-center gap-2 bg-stamp px-6 py-3.5 text-sm font-semibold text-white transition-transform hover:brightness-110 disabled:opacity-60"
               >
                 <PaperPlaneTilt size={16} weight="bold" />
                 {status === "sending" ? "Mengirim via WhatsApp" : "Lapor / Rekrut"}
@@ -163,7 +163,7 @@ export function ReportContact() {
 
       <footer className="flex flex-col items-center justify-between gap-4 pt-12 sm:flex-row">
         <p className="font-mono text-xs tracking-[0.14em] text-ink-soft uppercase">
-          Wanted archive — Alxyzz © 2026
+          Wanted archive · Alxyzz © 2026
         </p>
         <ul className="flex items-center gap-5">
           <li>

@@ -9,7 +9,7 @@ import { Reveal } from "./Reveal";
 gsap.registerPlugin(ScrollTrigger);
 
 // Koordinat titik: SD asli + SMK dari data Kemendikdasmen, sisanya perkiraan wajar
-// (label peta jujur: sketsa, bukan skala — jangan kutip angka ini di UI).
+// (label peta jujur: sketsa, bukan skala; jangan kutip angka ini di UI).
 // Catatan: file ini sengaja tanpa template literal (pakai concat biasa).
 const RAW = [
   { lng: 107.6759, lat: -6.5253, anchor: "middle" as const, dx: 0, dy: -22, tag: "SDN 1 KALIJATI", pAnchor: "start" as const, pDx: 14, pDy: -12 },
@@ -198,16 +198,16 @@ function RouteMap({
         </text>
       </g>
       <text x={vw - 20} y={vh - 20} textAnchor="end" fontSize={9} fontFamily="monospace" letterSpacing={1.5} fill="#4a4438">
-        SKETSA — BUKAN SKALA
+        SKETSA - BUKAN SKALA
       </text>
     </svg>
   );
 }
 
 // Jejak pelarian.
-// Desktop: section full-map di-pin — rute digambar, kamera zoom ke MISSING,
+// Desktop: section full-map di-pin: rute digambar, kamera zoom ke MISSING,
 // kartu exit diagonal, keterangan popover di pin yang baru dicapai.
-// HP: peta portrait sticky — kamera pan + zoom ngikutin marker, tanpa pin.
+// HP: peta portrait sticky: kamera pan + zoom ngikutin marker, tanpa pin.
 export function TrailTimeline() {
   const pinRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement | null>(null);
@@ -300,7 +300,7 @@ export function TrailTimeline() {
         });
       }
       draw(0);
-      // Jeda ping marker saat kartu di luar layar — potong repaint abadi.
+      // Jeda ping marker saat kartu di luar layar: potong repaint abadi.
       let io: IntersectionObserver | null = null;
       const cardEl = exitRef.current;
       if (cardEl && "IntersectionObserver" in window) {
@@ -328,7 +328,7 @@ export function TrailTimeline() {
       };
     });
 
-    // HP: peta portrait sticky — kamera pan + zoom ngikutin marker, tanpa pin.
+    // HP: peta portrait sticky: kamera pan + zoom ngikutin marker, tanpa pin.
     mm.add("(max-width: 1023px)", function () {
       if (!pathMRef.current || !markerMRef.current || !stageMRef.current || !innerMRef.current || !trackMRef.current) return;
       const path = pathMRef.current;
@@ -416,7 +416,7 @@ export function TrailTimeline() {
           Jejak Pelarian
         </h2>
         <p className="mt-3 max-w-[52ch] text-base leading-relaxed text-ink-soft">
-          Dari Kalijati sampai meja kerja. Tahan scroll — rute kabur digambar sampai tuntas.
+          Dari Kalijati sampai meja kerja. Tahan scroll untuk melihat rute kabur tuntas.
         </p>
       </Reveal>
 
@@ -436,7 +436,7 @@ export function TrailTimeline() {
                 <article key={s.stage} className="trail-item is-active">
                   <div className="card-dossier h-full border border-ink/20 bg-paper-card p-4">
                     <p className="font-mono text-[11px] font-bold tracking-[0.2em] text-stamp uppercase">
-                      Titik {i + 1} — {s.stage}
+                      Titik {i + 1} : {s.stage}
                     </p>
                     <h3 className="font-display mt-1.5 text-lg leading-snug font-extrabold tracking-tight text-ink">
                       {s.place}
@@ -479,7 +479,7 @@ export function TrailTimeline() {
                     className="card-dossier border border-ink/25 bg-paper-card p-4 shadow-[4px_4px_0_rgb(22_19_14/0.9)]"
                   >
                     <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-stamp uppercase">
-                      Titik {activeIdxM + 1} — {activeM.stage}
+                      Titik {activeIdxM + 1} : {activeM.stage}
                     </p>
                     <h3 className="font-display mt-1 text-base font-extrabold tracking-tight text-ink">
                       {activeM.place}
@@ -526,7 +526,7 @@ export function TrailTimeline() {
                   className="card-dossier border border-ink/25 bg-paper-card p-4 shadow-[4px_4px_0_rgb(22_19_14/0.9)]"
                 >
                   <p className="font-mono text-[10px] font-bold tracking-[0.2em] text-stamp uppercase">
-                    Titik {activeIdx + 1} — {active.stage}
+                    Titik {activeIdx + 1} : {active.stage}
                   </p>
                   <h3 className="font-display mt-1 text-base font-extrabold tracking-tight text-ink">
                     {active.place}

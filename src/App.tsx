@@ -34,7 +34,7 @@ function App() {
     };
   }, [loading]);
 
-  // Geometri pin diukur ulang begitu font/gambar/loader selesai —
+  // Geometri pin diukur ulang begitu font/gambar/loader selesai:
   // tanpa ini pin basi dan scroll patah-patah pas balik arah.
   useEffect(() => {
     function refresh() {

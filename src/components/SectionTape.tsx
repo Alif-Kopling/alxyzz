@@ -1,19 +1,24 @@
-// Pembatas hero dan berkas identitas: lakban garis berkas.
+import { profile } from "../data/wanted";
+
+// Pembatas hero dan berkas identitas: lakban garis berkas & status buronan.
 // Full-bleed selebar viewport, dekoratif murni (aria-hidden).
 export function SectionTape() {
   return (
     <div
       aria-hidden="true"
-      className="relative left-1/2 w-screen -translate-x-1/2 border-y border-ink/25 bg-paper-deep"
+      className="relative left-1/2 w-screen -translate-x-1/2 border-y border-ink/25 bg-paper-deep select-none"
     >
       <div className="tape-stripes h-2 w-full opacity-70" />
-      <p className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3 md:px-6">
-        <span className="h-px flex-1 bg-ink/25" />
-        <span className="font-mono text-[10px] font-bold tracking-[0.24em] text-ink-soft uppercase">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-2.5 font-mono text-[10px] font-bold tracking-[0.22em] text-ink-soft uppercase md:px-6">
+        <span className="flex items-center gap-2">
+          <span className="inline-block h-1.5 w-1.5 rounded-full bg-stamp" />
           Garis batas berkas · ALX-017
         </span>
-        <span className="h-px flex-1 bg-ink/25" />
-      </p>
+        <span className="hidden sm:inline">
+          {profile.publicRepos} Repositori Terverifikasi · {profile.location}
+        </span>
+        <span className="text-stamp">Status: At Large</span>
+      </div>
       <div className="tape-stripes h-2 w-full opacity-70" />
     </div>
   );

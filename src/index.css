@@ -80,7 +80,7 @@ body {
 }
 
 /* Kartu info: diam flat total, cuma hover yang ngangkat. Sengaja tanpa
-   fase :active dan tanpa cursor-pointer — itu garis jujurnya lawan tombol
+   fase :active dan tanpa cursor-pointer - itu garis jujurnya lawan tombol
    yang berbayang permanen. */
 .lift-hover {
   transition:
